@@ -1,6 +1,5 @@
 "use client";
 import Link from 'next/link';
-import { Shield, Zap, Clock, Settings, Monitor, Headphones, ArrowRight } from 'lucide-react';
 import ServerStatus from './components/ServerStatus';
 
 export default function Home() {

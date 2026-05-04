@@ -116,3 +116,17 @@ export const getGalleryList = async () => {
         }
     }
 }
+
+export const getDataServer = async () => {
+    try {
+        const res = await axios.get('/server-status/', {
+            withCredentials: true,
+        });
+
+        return res.data;
+    } catch (error){
+        if(axios.isAxiosError(error)){
+            console.error('Ошибка загрузки данных', error.response?.data || error.message);
+        }
+    }
+}

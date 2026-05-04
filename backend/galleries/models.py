@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
 class Galleries(models.Model):
@@ -15,5 +14,5 @@ class Galleries(models.Model):
     image = models.ImageField(upload_to='gallery', verbose_name='Картинка')
     status = models.CharField(max_length=20, choices=STATUS, default='pending')
     coins = models.PositiveIntegerField(default=0, verbose_name="Монеты")
-    tags = ArrayField(models.CharField(max_length=50), blank=True, default=list, verbose_name="Теги")
+    tags = models.JSONField(default=list, verbose_name="Теги", blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True) 

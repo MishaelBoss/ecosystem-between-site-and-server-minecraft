@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'users',
     'news',
     'galleries',
+    'server',
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',

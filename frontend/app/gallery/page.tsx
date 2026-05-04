@@ -139,7 +139,6 @@ export default function GalleryPage() {
         <span style={{ marginLeft: 'auto', color: '#a0a0a0', fontSize: '13px' }}>{filtered.length} работ</span>
       </div>
 
-      {/* Сетка карточек */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
@@ -150,7 +149,6 @@ export default function GalleryPage() {
         ))}
       </div>
 
-      {/* Лайтбокс */}
       {lightbox && (
         <div
           onClick={() => setLightbox(null)}
@@ -174,8 +172,9 @@ export default function GalleryPage() {
             <div style={{ position: 'relative', height: '340px' }}>
               <Image
                 src={lightbox.image}
-                alt={lightbox.title}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                alt={lightbox.title || 'Увеличенное изображение'}
+                fill
+                style={{ objectFit: 'cover' }}
               />
               <button
                 type="button"
@@ -277,11 +276,10 @@ function GalleryCard({ item, onOpen }: { item: IGalleryItem; onOpen: () => void 
         backgroundColor: '#0a0a0a',
       }}>
         <Image
-          src={item.image.replace('http://localhost', '')}
+          src={item.image}
           alt={item.title || 'Увеличенное изображение'}
-          width={100}
-          height={100}
-          objectFit='cover'
+          fill
+          style={{ objectFit: 'cover' }}
         />
         <div style={{
           position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0)',
