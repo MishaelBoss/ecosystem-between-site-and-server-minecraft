@@ -33,7 +33,7 @@ export default function ServerStatus() {
           fontWeight: 600,
           fontSize: '16px',
         }}>
-          🔴 Сервер оффлайн или временно недоступен
+          Сервер оффлайн или временно недоступен
         </div>
       </div>
     );

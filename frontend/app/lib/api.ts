@@ -252,7 +252,6 @@ export const deleteNews = async (id: number) => {
     }
 };
 
-// ==================== MODS API ====================
 
 export const getModList = async (category?: string, search?: string) => {
     try {

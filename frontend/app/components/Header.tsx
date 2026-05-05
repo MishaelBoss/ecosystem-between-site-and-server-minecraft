@@ -45,7 +45,7 @@ export default function Header() {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               letterSpacing: '-0.5px',
-            }}>CraftWorld</span>
+            }}>SwordDiscord</span>
           </Link>
 
           <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="desktop-nav">
@@ -54,7 +54,7 @@ export default function Header() {
             <NavLink href="/news" icon={<Newspaper size={15} />}>Новости</NavLink>
             <NavLink href="/gallery" icon={<GalleryThumbnails size={15} />}>Галерея</NavLink>
             <NavLink href="/how-to-play" icon={<Download size={15} />}>Как играть</NavLink>
-            <NavLink href="#" icon={<Coins size={15} />}>Магазин</NavLink>
+            <NavLink href="/shop" icon={<Coins size={15} />}>Магазин</NavLink>
             {isAdmin && <NavLink href="/admin/mods" icon={<Package size={15} />}>Упр. Модами</NavLink>}
             {isAdmin && <NavLink href="/admin/news" icon={<ShieldCheck size={15} />}>Упр. Новостями</NavLink>}
             {isAdmin && <NavLink href="/admin/gallery" icon={<ShieldCheck size={15} />}>Упр. Галереей</NavLink>}

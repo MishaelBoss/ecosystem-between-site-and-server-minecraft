@@ -4,7 +4,8 @@ import ServerStatus from './components/ServerStatus';
 import { useServerStatus } from './context/ServerStatusContext';
 
 export default function Home() {
-  const { data } = useServerStatus();
+  const { data, isLoading } = useServerStatus();
+
   const features = [
     { icon: '🛡️', title: 'Anti-DDoS защита', desc: 'Защита уровня L3-L7, отражающая атаки до 1 Тбит/с. Играйте без лагов и отключений.' },
     { icon: '⚡', title: 'Производительность', desc: 'Серверы на NVMe SSD с 10 Гбит/с каналом. TPS всегда на уровне 20.' },
@@ -44,9 +45,20 @@ export default function Home() {
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#161616', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '12px 20px', fontSize: '15px', fontWeight: 600, color: '#a0a0a0', fontFamily: 'monospace' }}>
-              {data?.ip || 'сервер не доступен'}
-            </div>
+            {isLoading ? (
+              <div style={{ 
+                height: '44px', 
+                width: '200px',
+                backgroundColor: '#161616', 
+                border: '1px solid rgba(255,255,255,0.08)', 
+                borderRadius: '10px',
+                animation: 'shimmer 1.5s infinite'
+              }} />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#161616', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '12px 20px', fontSize: '15px', fontWeight: 600, color: '#a0a0a0', fontFamily: 'monospace' }}>
+                {data?.ip || 'сервер не доступен'}
+              </div>
+            )}
             <Link href="/news" style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#e0195a', borderRadius: '10px', padding: '12px 24px', fontSize: '15px', fontWeight: 600, color: '#fff', textDecoration: 'none' }}>
               Новости сервера →
             </Link>
@@ -98,19 +110,22 @@ export default function Home() {
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 80% at 50% 50%, rgba(224,25,90,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
           <h2 style={{ fontSize: '36px', fontWeight: 900, marginBottom: '12px', letterSpacing: '-1px', position: 'relative' }}>Готов к приключению?</h2>
           <p style={{ color: '#a0a0a0', fontSize: '16px', marginBottom: '32px', position: 'relative' }}>Подключайся прямо сейчас — регистрация занимает 1 минуту</p>
-          <div style={{ fontFamily: 'monospace', fontSize: '20px', fontWeight: 700, padding: '14px 28px', backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', display: 'inline-block', position: 'relative' }}>
-            {data?.ip || 'сервер не доступен'}
-          </div>
+          {isLoading ? (
+            <div style={{ 
+              height: '52px', 
+              width: '250px',
+              backgroundColor: '#111', 
+              border: '1px solid rgba(255,255,255,0.08)', 
+              borderRadius: '10px',
+              animation: 'shimmer 1.5s infinite'
+            }} />
+          ) : (
+            <div style={{ fontFamily: 'monospace', fontSize: '20px', fontWeight: 700, padding: '14px 28px', backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', display: 'inline-block', position: 'relative' }}>
+              {data?.ip || 'сервер не доступен'}
+            </div>
+          )}
         </div>
       </section>
-
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '32px 24px', textAlign: 'center', color: '#a0a0a0', fontSize: '13px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-          <span style={{ fontSize: '20px' }}>⛏️</span>
-          <span style={{ fontWeight: 700, color: '#fff' }}>CraftWorld</span>
-        </div>
-        <p>© 2026 CraftWorld. Все права защищены. Не является официальным продуктом Mojang Studios.</p>
-      </footer>
     </main>
   );
 }

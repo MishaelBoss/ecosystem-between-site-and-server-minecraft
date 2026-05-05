@@ -1,8 +1,8 @@
 'use client';
 import Link from 'next/link';
-import { Download, Play, Monitor, Package, ChevronLeft, ExternalLink, CheckCircle } from 'lucide-react';
+import { Download, Play, Monitor, Package, ChevronLeft, HardDrive } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { getModList } from '../lib/api';
+import { getModList, registerModDownload } from '../lib/api';
 import { IModItem } from '../types/mod.interface';
 
 export default function HowToPlayPage() {
@@ -16,17 +16,24 @@ export default function HowToPlayPage() {
         fetchMods();
     }, []);
 
+    const handleDownload = async (mod: IModItem) => {
+        await registerModDownload(mod.id);
+        setMods(prevMods => prevMods.map(m => 
+            m.id === mod.id ? { ...m, downloads: m.downloads + 1 } : m
+        ));
+    };
+
     const steps = [
         {
             icon: <Monitor size={32} />,
             title: 'Установите Minecraft Java Edition',
-            description: 'Купите и установите официальную версию Minecraft Java Edition с сайта minecraft.net. Рекомендуется версия 1.20.1 для лучшей совместимости с модами.',
+            description: 'Купите и установите официальную версию Minecraft Java Edition с сайта minecraft.net.',
             color: '#3b82f6'
         },
         {
             icon: <Package size={32} />,
-            title: 'Установите Forge или Fabric',
-            description: 'Скачайте и установите загрузчик модов Forge или Fabric. Мы рекомендуем Forge для большинства сборок модов.',
+            title: 'Установите NeoForge',
+            description: 'Скачайте NeoForge с сайта neoforged.net и выберите версию 1.21.1. Убедитесь, что выбран пункт "Client" и нажмите "Далее". После установки перезапустите лаунчер.',
             color: '#ef4444'
         },
         {
@@ -38,7 +45,7 @@ export default function HowToPlayPage() {
         {
             icon: <Play size={32} />,
             title: 'Подключайтесь к серверу',
-            description: 'Запустите Minecraft с профилем Forge/Fabric и подключитесь к нашему серверу по указанному IP адресу.',
+            description: 'Запустите Minecraft с профилем NeoForge 1.21.1 и подключитесь к нашему серверу по указанному IP адресу.',
             color: '#a855f7'
         }
     ];
@@ -178,13 +185,45 @@ export default function HowToPlayPage() {
             {/* Download Mods Section */}
             <section style={{ backgroundColor: '#111111', borderTop: '1px solid rgba(255,255,255,0.08)', padding: '60px 24px' }}>
                 <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-                    <div style={{ marginBottom: '40px' }}>
-                        <p style={{ color: '#e0195a', fontSize: '12px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
-                            СБОРКА МОДОВ
-                        </p>
-                        <h2 style={{ fontSize: 'clamp(24px, 4vw, 40px)', fontWeight: 900, letterSpacing: '-1px' }}>
-                            Доступные моды
-                        </h2>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '40px', flexWrap: 'wrap', gap: '16px' }}>
+                        <div>
+                            <p style={{ color: '#e0195a', fontSize: '12px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                                СБОРКА МОДОВ
+                            </p>
+                            <h2 style={{ fontSize: 'clamp(24px, 4vw, 40px)', fontWeight: 900, letterSpacing: '-1px' }}>
+                                Доступные моды
+                            </h2>
+                        </div>
+                        {mods.length > 0 && (
+                            <button
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '12px 24px',
+                                    backgroundColor: 'var(--accent)',
+                                    color: '#fff',
+                                    borderRadius: '12px',
+                                    fontSize: '14px',
+                                    fontWeight: 600,
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    height: 'fit-content'
+                                }}
+                                onClick={async () => {
+                                    for (const mod of mods) {
+                                        await handleDownload(mod);
+                                        const link = document.createElement('a');
+                                        link.href = mod.file_url;
+                                        link.download = mod.title;
+                                        link.click();
+                                    }
+                                }}
+                            >
+                                <Download size={16} /> Скачать все моды ({mods.length})
+                            </button>
+                        )}
                     </div>
 
                     {mods.length === 0 ? (
@@ -243,9 +282,10 @@ export default function HowToPlayPage() {
                                         {mod.description || 'Мод для улучшения игрового опыта'}
                                     </p>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                                            📥 {mod.downloads} скачиваний
-                                        </span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                            <HardDrive size={14} />
+                                            <span>{mod.downloads} скачиваний</span>
+                                        </div>
                                         <a 
                                             href={mod.file_url}
                                             download
@@ -262,8 +302,13 @@ export default function HowToPlayPage() {
                                                 textDecoration: 'none',
                                                 transition: 'all 0.2s'
                                             }}
-                                            onClick={() => {
-                                                fetch(`/api/mods/${mod.id}/download/`, { method: 'POST', credentials: 'include' });
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                handleDownload(mod);
+                                                const link = document.createElement('a');
+                                                link.href = mod.file_url;
+                                                link.download = mod.title;
+                                                link.click();
                                             }}
                                         >
                                             <Download size={14} /> Скачать
@@ -326,14 +371,6 @@ export default function HowToPlayPage() {
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '32px 24px', textAlign: 'center', color: '#a0a0a0', fontSize: '13px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '20px' }}>⛏️</span>
-                    <span style={{ fontWeight: 700, color: '#fff' }}>CraftWorld</span>
-                </div>
-                <p>© 2026 CraftWorld. Все права защищены.</p>
-            </footer>
         </main>
     );
 }

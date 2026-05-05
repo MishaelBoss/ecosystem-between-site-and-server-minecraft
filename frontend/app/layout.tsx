@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import { AuthProvider } from "./context/AuthContext";
 import { Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css"; 
 import AxiosConfig from "./components/AxiosConfig";
 import { ServerStatusProvider } from "./context/ServerStatusContext";
+import LayoutContent from "./components/LayoutContent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,15 +36,13 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AuthProvider>
-          <ServerStatusProvider>
-            <Theme appearance="dark" hasBackground={false} suppressHydrationWarning>
-              <Header/>
-              <AxiosConfig />
-              {children}
-            </Theme>
-          </ServerStatusProvider>
-        </AuthProvider>
+          <AuthProvider>
+            <ServerStatusProvider>
+              <Theme appearance="dark" hasBackground={false} suppressHydrationWarning>
+                <LayoutContent>{children}</LayoutContent>
+              </Theme>
+            </ServerStatusProvider>
+          </AuthProvider>
       </body>
     </html>
   );
