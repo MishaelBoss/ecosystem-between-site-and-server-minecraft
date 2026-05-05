@@ -1,6 +1,6 @@
 import axios from "axios";
 import { IUserLogin, IUserRegister } from "../types/user.interface";
-import { IGalleryCreate, IGalleryItem } from "../types/gallery.interface";
+import { IGalleryCreate } from "../types/gallery.interface";
 
 export const checkAuthStatus = async () => {
     try {
@@ -130,3 +130,75 @@ export const getDataServer = async () => {
         }
     }
 }
+
+export const getListNews = async (offset: number, limit: number = 20) => {
+    try {
+        const res = await axios.get('/all-list-news/', {
+            params: { limit, offset },
+            withCredentials: true,
+        });
+
+        return res.data;
+    } catch (error){
+        if(axios.isAxiosError(error)){
+            console.error('Ошибка загрузки данных', error.response?.data || error.message);
+        }
+    }
+}
+
+export const getNewsDetail = async (id: number) => {
+    try {
+        const res = await axios.get(`/news/${id}/`, {
+            withCredentials: true,
+        });
+
+        return res.data;
+    } catch (error){
+        if(axios.isAxiosError(error)){
+            console.error('Ошибка загрузки данных', error.response?.data || error.message);
+        }
+    }
+}
+
+export const approveGalleryItem = async (id: number, coins?: number) => {
+    try {
+        const res = await axios.post(`/gallery/${id}/approve/`, 
+            coins !== undefined ? { coins } : {},
+            { withCredentials: true }
+        );
+
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка одобрения работы', error.response?.data || error.message);
+        }
+    }
+};
+
+export const rejectGalleryItem = async (id: number) => {
+    try {
+        const res = await axios.post(`/gallery/${id}/reject/`, {}, {
+            withCredentials: true,
+        });
+
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка отклонения работы', error.response?.data || error.message);
+        }
+    }
+};
+
+export const undoGalleryItem = async (id: number) => {
+    try {
+        const res = await axios.post(`/gallery/${id}/undo/`, {}, {
+            withCredentials: true,
+        });
+
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка возврата на проверку', error.response?.data || error.message);
+        }
+    }
+};

@@ -2,6 +2,8 @@ export interface IUser{
     username: string;
     email: string;
     avatar?: string;
+    coins?: number;
+    is_staff?: boolean; 
 }
 
 export interface IUserLogin{

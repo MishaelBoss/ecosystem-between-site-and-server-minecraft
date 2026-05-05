@@ -98,8 +98,10 @@ class UserStatusView(APIView):
 
         return Response({
                 "is_authenticated": True,
+                "is_staff": user.is_staff,
                 "username": user.username,
                 "email": user.email,
+                "coins": user.coins,
             })
     
 
@@ -116,3 +118,54 @@ class LogoutView(APIView):
         response.delete_cookie('csrftoken', path='/')
 
         return response
+
+
+class MinecraftAuthView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        try:
+            user = User.objects.get(username__iexact=username)
+            if user.check_password(password):
+                return Response({"message": "OK", "coins": user.coins}, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class MinecraftRegisterView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        if User.objects.filter(username__iexact=username).exists():
+            return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user = User.objects.create_user(username=username, password=password)
+        return Response({"message": "Created", "coins": user.coins}, status=status.HTTP_201_CREATED)
+
+class MinecraftEconomyView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        action = request.data.get('action') # 'add', 'set', 'get'
+        amount = request.data.get('amount', 0)
+        
+        try:
+            user = User.objects.get(username__iexact=username)
+            if action == 'add':
+                user.coins += int(amount)
+                user.save()
+            elif action == 'set':
+                user.coins = int(amount)
+                user.save()
+            
+            return Response({"coins": user.coins}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)

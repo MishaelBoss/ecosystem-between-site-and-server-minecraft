@@ -1,8 +1,10 @@
 "use client";
 import Link from 'next/link';
 import ServerStatus from './components/ServerStatus';
+import { useServerStatus } from './context/ServerStatusContext';
 
 export default function Home() {
+  const { data } = useServerStatus();
   const features = [
     { icon: '🛡️', title: 'Anti-DDoS защита', desc: 'Защита уровня L3-L7, отражающая атаки до 1 Тбит/с. Играйте без лагов и отключений.' },
     { icon: '⚡', title: 'Производительность', desc: 'Серверы на NVMe SSD с 10 Гбит/с каналом. TPS всегда на уровне 20.' },
@@ -43,7 +45,7 @@ export default function Home() {
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#161616', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '12px 20px', fontSize: '15px', fontWeight: 600, color: '#a0a0a0', fontFamily: 'monospace' }}>
-              play.craftworld.ru
+              {data?.ip || 'сервер не доступен'}
             </div>
             <Link href="/news" style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#e0195a', borderRadius: '10px', padding: '12px 24px', fontSize: '15px', fontWeight: 600, color: '#fff', textDecoration: 'none' }}>
               Новости сервера →
@@ -97,7 +99,7 @@ export default function Home() {
           <h2 style={{ fontSize: '36px', fontWeight: 900, marginBottom: '12px', letterSpacing: '-1px', position: 'relative' }}>Готов к приключению?</h2>
           <p style={{ color: '#a0a0a0', fontSize: '16px', marginBottom: '32px', position: 'relative' }}>Подключайся прямо сейчас — регистрация занимает 1 минуту</p>
           <div style={{ fontFamily: 'monospace', fontSize: '20px', fontWeight: 700, padding: '14px 28px', backgroundColor: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', display: 'inline-block', position: 'relative' }}>
-            play.craftworld.ru
+            {data?.ip || 'сервер не доступен'}
           </div>
         </div>
       </section>

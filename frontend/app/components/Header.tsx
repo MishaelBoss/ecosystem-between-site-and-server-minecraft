@@ -1,14 +1,16 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { LogOut, User, Home, Newspaper, Menu, X, GalleryThumbnails } from 'lucide-react';
+import { LogOut, User, Home, Newspaper, Menu, X, GalleryThumbnails, Map as MapIcon, Coins, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './AuthModal';
+import { useServerStatus } from '../context/ServerStatusContext';
 
 export default function Header() {
   const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
+  const { data } = useServerStatus();
 
   return (
     <>
@@ -43,13 +45,15 @@ export default function Header() {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               letterSpacing: '-0.5px',
-            }}>CraftWorld</span>
+            }}>SwordDiscord</span>
           </Link>
 
           <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="desktop-nav">
             <NavLink href="/" icon={<Home size={15} />}>Главная</NavLink>
+            <NavLink href="/map" icon={<MapIcon size={15} />}>Карта Мира</NavLink>
             <NavLink href="/news" icon={<Newspaper size={15} />}>Новости</NavLink>
             <NavLink href="/gallery" icon={<GalleryThumbnails size={15} />}>Галерея</NavLink>
+            {isAdmin && <NavLink href="/admin/gallery" icon={<ShieldCheck size={15} />}>Админка</NavLink>}
           </nav>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -64,6 +68,9 @@ export default function Header() {
               }}>
                 <User size={14} color="var(--accent)" />
                 <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{user.username}</span>
+                <span style={{ margin: '0 4px', color: 'var(--border)' }}>|</span>
+                <Coins size={14} color="#ffd700" />
+                <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 'bold' }}>{user.coins || 0}</span>
               </div>
               <button
                 onClick={logout}
@@ -119,7 +126,10 @@ export default function Header() {
             display: 'flex', flexDirection: 'column', gap: '4px',
           }}>
             <MobileNavLink href="/" onClick={() => setMobileOpen(false)}>🏠 Главная</MobileNavLink>
+            <MobileNavLink href="/map" onClick={() => setMobileOpen(false)}>🗺️ Карта Мира</MobileNavLink>
             <MobileNavLink href="/news" onClick={() => setMobileOpen(false)}>📰 Новости</MobileNavLink>
+            <MobileNavLink href="/gallery" onClick={() => setMobileOpen(false)}>🖼️ Галерея</MobileNavLink>
+            {isAdmin && <MobileNavLink href="/admin/gallery" onClick={() => setMobileOpen(false)}>🛡️ Админка</MobileNavLink>}
           </div>
         )}
       </header>
