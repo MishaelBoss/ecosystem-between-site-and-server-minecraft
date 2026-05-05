@@ -15,10 +15,10 @@ export default function Home() {
   ];
 
   const stats = [
-    { value: '31.6K+', label: 'Зарегистрированных игроков' },
-    { value: '1200', label: 'Дней в работе' },
-    { value: '99.9%', label: 'Аптайм сервера' },
-    { value: '< 15ms', label: 'Средний пинг' },
+    { value: data?.players !== undefined ? `${data.players} / ${data.maxPlayers}` : '...', label: 'Игроков онлайн' },
+    { value: data?.days_online !== undefined ? `${data.days_online}` : '...', label: 'Дней в работе' },
+    { value: data?.uptime || '99.9%', label: 'Аптайм сервера' },
+    { value: data?.latency !== undefined ? `< ${data.latency}ms` : '...', label: 'Средний пинг' },
   ];
 
   return (

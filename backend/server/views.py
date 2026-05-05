@@ -31,6 +31,11 @@ def server_status(request):
             pass
 
         tps = get_tps_from_plugin() or 20.0
+        
+        # Пример расчета дней работы
+        from datetime import datetime
+        start_date = datetime(2023, 1, 1) # Можно поменять на реальную дату запуска
+        days_online = (datetime.now() - start_date).days
 
         return JsonResponse({
             'online': True,
@@ -44,6 +49,8 @@ def server_status(request):
             'ip': 'c5.play2go.cloud',
             'port': 20167,
             'mode': 'Выживание',
+            'days_online': days_online,
+            'uptime': '99.9%',
         })
     except Exception as e:
         return JsonResponse({'online': False, 'error': str(e), 'latency': 0, 'tps': 20.0})

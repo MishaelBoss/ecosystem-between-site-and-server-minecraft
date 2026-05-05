@@ -20,7 +20,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     const fetchNewsDetail = async () => {
       try {
-        const response = await getNewsDetail(1);
+        const response = await getNewsDetail(parseInt(resolvedParams.id));
         setNewsItem(response);
       } catch (error) {
         console.error("Failed to load news detail", error);

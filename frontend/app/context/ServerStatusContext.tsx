@@ -15,6 +15,8 @@ export interface ServerStatusData {
     ip?: string;
     port?: number;
     mode?: string;
+    days_online?: number;
+    uptime?: string;
 }
 
 interface ServerStatusContextValue {
@@ -52,6 +54,8 @@ export function ServerStatusProvider({ children }: { children: ReactNode }) {
                 ip: raw.ip ?? 'play.craftworld.ru',
                 port: raw.port ?? 20167,
                 mode: raw.mode ?? 'Выживание',
+                days_online: raw.days_online ?? 0,
+                uptime: raw.uptime ?? '99.9%',
             });
         } catch (err) {
             console.error('Ошибка при загрузке статуса сервера', err);

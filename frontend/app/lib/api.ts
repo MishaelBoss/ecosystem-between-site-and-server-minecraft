@@ -202,3 +202,51 @@ export const undoGalleryItem = async (id: number) => {
         }
     }
 };
+
+export const createNews = async (data: FormData) => {
+    try {
+        const res = await axios.post('/all-list-news/', data, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка создания новости', error.response?.data || error.message);
+        }
+        throw error;
+    }
+};
+
+export const updateNews = async (id: number, data: FormData) => {
+    try {
+        const res = await axios.patch(`/news/${id}/`, data, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка обновления новости', error.response?.data || error.message);
+        }
+        throw error;
+    }
+};
+
+export const deleteNews = async (id: number) => {
+    try {
+        await axios.delete(`/news/${id}/`, {
+            withCredentials: true,
+        });
+        return true;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка удаления новости', error.response?.data || error.message);
+        }
+        throw error;
+    }
+};

@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { getListNews } from '../lib/api';
+import { INewsItem } from '../types/news.interface';
 
 const PAGE_SIZE = 20;
 

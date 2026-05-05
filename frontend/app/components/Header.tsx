@@ -45,15 +45,18 @@ export default function Header() {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               letterSpacing: '-0.5px',
-            }}>SwordDiscord</span>
+            }}>CraftWorld</span>
           </Link>
 
           <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }} className="desktop-nav">
             <NavLink href="/" icon={<Home size={15} />}>Главная</NavLink>
-            <NavLink href="/map" icon={<MapIcon size={15} />}>Карта Мира</NavLink>
+            <NavLink href="/map" icon={<MapIcon size={15} />}>Карта</NavLink>
             <NavLink href="/news" icon={<Newspaper size={15} />}>Новости</NavLink>
             <NavLink href="/gallery" icon={<GalleryThumbnails size={15} />}>Галерея</NavLink>
-            {isAdmin && <NavLink href="/admin/gallery" icon={<ShieldCheck size={15} />}>Админка</NavLink>}
+            <NavLink href="#" icon={<Coins size={15} />}>Магазин</NavLink>
+            <NavLink href="#" icon={<X size={15} />}>В разработке</NavLink>
+            {isAdmin && <NavLink href="/admin/news" icon={<ShieldCheck size={15} />}>Упр. Новостями</NavLink>}
+            {isAdmin && <NavLink href="/admin/gallery" icon={<ShieldCheck size={15} />}>Упр. Галереей</NavLink>}
           </nav>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
