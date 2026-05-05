@@ -5,16 +5,16 @@ import { X, ZoomIn, Coins, CheckCircle2, Clock, XCircle, ImagePlus, Trophy, Star
 import UploadImageModel from './_components/UploadImageModel';
 import { useAuth } from '../context/AuthContext';
 import { getGalleryList } from '../lib/api';
-import { IGalleryItem, Status } from '../types/gallery.interface';
+import { GalleryStatus, IGalleryItem } from '../types/gallery.interface';
 import Image from 'next/image';
 
-const STATUS_CONFIG: Record<Status, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
+const STATUS_CONFIG: Record<GalleryStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   approved: { label: 'Одобрено', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', icon: <CheckCircle2 size={12} /> },
   pending:  { label: 'На проверке', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: <Clock size={12} /> },
   rejected: { label: 'Отклонено', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', icon: <XCircle size={12} /> },
 };
 
-const FILTERS: { value: Status | 'all'; label: string }[] = [
+const FILTERS: { value: GalleryStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'Все' },
   { value: 'approved', label: 'Одобренные' },
   { value: 'pending', label: 'На проверке' },
@@ -26,7 +26,7 @@ export default function GalleryPage() {
 
   const [items, setItems] = useState<IGalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<Status | 'all'>('all');
+  const [filter, setFilter] = useState<GalleryStatus | 'all'>('all');
   const [lightbox, setLightbox] = useState<IGalleryItem | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
 
