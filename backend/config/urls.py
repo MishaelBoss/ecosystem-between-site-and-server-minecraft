@@ -25,6 +25,7 @@ urlpatterns = [
     path("api/", include("news.urls")),
     path("api/", include("galleries.urls")),
     path("api/", include("server.urls")),
+    path("api/", include("mods.urls")),
 ]
 
 if settings.DEBUG:

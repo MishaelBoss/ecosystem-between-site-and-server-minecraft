@@ -1,6 +1,7 @@
 import axios from "axios";
 import { IUserLogin, IUserRegister } from "../types/user.interface";
 import { IGalleryCreate } from "../types/gallery.interface";
+import { IModCreate } from "../types/mod.interface";
 
 export const checkAuthStatus = async () => {
     try {
@@ -248,5 +249,161 @@ export const deleteNews = async (id: number) => {
             console.error('Ошибка удаления новости', error.response?.data || error.message);
         }
         throw error;
+    }
+};
+
+// ==================== MODS API ====================
+
+export const getModList = async (category?: string, search?: string) => {
+    try {
+        const params: Record<string, string> = {};
+        if (category) params.category = category;
+        if (search) params.search = search;
+        
+        const res = await axios.get('/mods/', {
+            params,
+            withCredentials: true,
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка загрузки модов', error.response?.data || error.message);
+        }
+        return [];
+    }
+};
+
+export const getModDetail = async (id: number) => {
+    try {
+        const res = await axios.get(`/mods/${id}/`, {
+            withCredentials: true,
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка загрузки мода', error.response?.data || error.message);
+        }
+        return null;
+    }
+};
+
+export const uploadMod = async (data: IModCreate) => {
+    try {
+        const formData = new FormData();
+        formData.append('title', data.title);
+        if (data.description) formData.append('description', data.description);
+        if (data.file) formData.append('file', data.file);
+        if (data.version) formData.append('version', data.version);
+        if (data.category) formData.append('category', data.category);
+
+        const res = await axios.post('/admin/mods/create/', formData, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка загрузки мода', error.response?.data || error.message);
+        }
+        throw error;
+    }
+};
+
+export const updateMod = async (id: number, data: Partial<IModCreate>) => {
+    try {
+        const formData = new FormData();
+        if (data.title) formData.append('title', data.title);
+        if (data.description !== undefined) formData.append('description', data.description);
+        if (data.file) formData.append('file', data.file);
+        if (data.version) formData.append('version', data.version);
+        if (data.category) formData.append('category', data.category);
+
+        const res = await axios.patch(`/admin/mods/${id}/`, formData, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка обновления мода', error.response?.data || error.message);
+        }
+        throw error;
+    }
+};
+
+export const deleteMod = async (id: number) => {
+    try {
+        await axios.delete(`/admin/mods/${id}/`, {
+            withCredentials: true,
+        });
+        return true;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка удаления мода', error.response?.data || error.message);
+        }
+        throw error;
+    }
+};
+
+export const approveMod = async (id: number) => {
+    try {
+        const res = await axios.post(`/admin/mods/${id}/approve/`, {}, {
+            withCredentials: true,
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка одобрения мода', error.response?.data || error.message);
+        }
+        throw error;
+    }
+};
+
+export const rejectMod = async (id: number) => {
+    try {
+        const res = await axios.post(`/admin/mods/${id}/reject/`, {}, {
+            withCredentials: true,
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка отклонения мода', error.response?.data || error.message);
+        }
+        throw error;
+    }
+};
+
+export const getAdminModList = async (status?: string) => {
+    try {
+        const params: Record<string, string> = {};
+        if (status) params.status = status;
+        
+        const res = await axios.get('/admin/mods/', {
+            params,
+            withCredentials: true,
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка загрузки списка модов', error.response?.data || error.message);
+        }
+        return [];
+    }
+};
+
+export const registerModDownload = async (id: number) => {
+    try {
+        const res = await axios.post(`/mods/${id}/download/`, {}, {
+            withCredentials: true,
+        });
+        return res.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Ошибка регистрации скачивания', error.response?.data || error.message);
+        }
     }
 };

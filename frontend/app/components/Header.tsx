@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { LogOut, User, Home, Newspaper, Menu, X, GalleryThumbnails, Map as MapIcon, Coins, ShieldCheck } from 'lucide-react';
+import { LogOut, User, Home, Newspaper, Menu, X, GalleryThumbnails, Map as MapIcon, Coins, ShieldCheck, Download, Package } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './AuthModal';
 import { useServerStatus } from '../context/ServerStatusContext';
@@ -53,8 +53,9 @@ export default function Header() {
             <NavLink href="/map" icon={<MapIcon size={15} />}>Карта</NavLink>
             <NavLink href="/news" icon={<Newspaper size={15} />}>Новости</NavLink>
             <NavLink href="/gallery" icon={<GalleryThumbnails size={15} />}>Галерея</NavLink>
+            <NavLink href="/how-to-play" icon={<Download size={15} />}>Как играть</NavLink>
             <NavLink href="#" icon={<Coins size={15} />}>Магазин</NavLink>
-            <NavLink href="#" icon={<X size={15} />}>В разработке</NavLink>
+            {isAdmin && <NavLink href="/admin/mods" icon={<Package size={15} />}>Упр. Модами</NavLink>}
             {isAdmin && <NavLink href="/admin/news" icon={<ShieldCheck size={15} />}>Упр. Новостями</NavLink>}
             {isAdmin && <NavLink href="/admin/gallery" icon={<ShieldCheck size={15} />}>Упр. Галереей</NavLink>}
           </nav>
@@ -132,6 +133,8 @@ export default function Header() {
             <MobileNavLink href="/map" onClick={() => setMobileOpen(false)}>🗺️ Карта Мира</MobileNavLink>
             <MobileNavLink href="/news" onClick={() => setMobileOpen(false)}>📰 Новости</MobileNavLink>
             <MobileNavLink href="/gallery" onClick={() => setMobileOpen(false)}>🖼️ Галерея</MobileNavLink>
+            <MobileNavLink href="/how-to-play" onClick={() => setMobileOpen(false)}>📥 Как играть</MobileNavLink>
+            <MobileNavLink href="/admin/mods" onClick={() => setMobileOpen(false)}>📦 Управление модами</MobileNavLink>
             {isAdmin && <MobileNavLink href="/admin/gallery" onClick={() => setMobileOpen(false)}>🛡️ Админка</MobileNavLink>}
           </div>
         )}
