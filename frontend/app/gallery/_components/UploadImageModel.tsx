@@ -1,6 +1,7 @@
 'use client';
 
 import { uploadImage } from '@/app/lib/api';
+import Portal from '@/app/components/Portal';
 import { IGalleryCreate } from '@/app/types/gallery.interface';
 import { Upload, X, Coins } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -69,6 +70,7 @@ export default function UploadImageModel({ onClose }: Props) {
     };
 
     return (
+        <Portal>
         <div
             onClick={e => { if (e.target === e.currentTarget) onClose(); }}
             style={{
@@ -225,5 +227,6 @@ export default function UploadImageModel({ onClose }: Props) {
                 )}
             </div>
         </div>
+        </Portal>
     );
 }

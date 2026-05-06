@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import Portal from './Portal';
 import { Mail, Lock, User, Eye, EyeOff, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
@@ -33,6 +34,7 @@ export default function AuthModal({ mode, onClose, onSwitch }: Props) {
   };
 
   return (
+    <Portal>
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{
@@ -178,6 +180,7 @@ export default function AuthModal({ mode, onClose, onSwitch }: Props) {
         </p>
       </div>
     </div>
+    </Portal>
   );
 }
 

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { X, Upload, Save } from 'lucide-react';
 import { createNews, updateNews } from '../../../lib/api';
+import Portal from '../../../components/Portal';
 
 interface NewsFormProps {
     item?: any;
@@ -45,6 +46,7 @@ export default function NewsForm({ item, onClose, onSuccess }: NewsFormProps) {
     };
 
     return (
+        <Portal>
         <div style={{ 
             position: 'fixed', inset: 0, zIndex: 1000, 
             display: 'flex', alignItems: 'center', justifyContent: 'center', 
@@ -132,5 +134,6 @@ export default function NewsForm({ item, onClose, onSuccess }: NewsFormProps) {
                 </form>
             </div>
         </div>
+        </Portal>
     );
 }

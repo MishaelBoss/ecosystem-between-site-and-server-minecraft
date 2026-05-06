@@ -6,6 +6,7 @@ import { getAdminModList, deleteMod, uploadMod } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { IModItem, ModCategory, CATEGORY_CONFIG, STATUS_CONFIG } from '../../types/mod.interface';
+import Portal from '../../components/Portal';
 
 export default function ModsAdminPage() {
     const [mods, setMods] = useState<IModItem[]>([]);
@@ -241,6 +242,7 @@ function ModForm({ item, onClose, onSuccess }: {
     };
 
     return (
+        <Portal>
         <div style={{
             position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
@@ -425,5 +427,6 @@ function ModForm({ item, onClose, onSuccess }: {
                 </form>
             </div>
         </div>
+        </Portal>
     );
 }
