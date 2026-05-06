@@ -1,12 +1,23 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from .models import Mod
 from .serializers import ModSerializer
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.db import transaction
 from django.db.models import Q
+import os
+import zipfile
+import tempfile
+import shutil
+import threading
+import logging
+from django.conf import settings
+from django.core.files.base import ContentFile
+
+logger = logging.getLogger(__name__)
 
 
 class ModListView(APIView):
@@ -153,3 +164,131 @@ class ModDownloadView(APIView):
             "message": "Скачивание зафиксировано",
             "downloads": mod.downloads
         })
+
+
+# ===== НОВОЕ: массовая загрузка модов =====
+
+# Хранилище прогресса в памяти (для демонстрации)
+# В продакшене лучше использовать Redis
+batch_progress_store = {}
+
+
+class ModBatchUploadView(APIView):
+    """Массовая загрузка модов (только администраторы)
+    Обрабатывает файлы синхронно и возвращает результат сразу.
+    """
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        files = request.FILES.getlist('files')
+        archive = request.FILES.get('archive')
+
+        if not files and not archive:
+            return Response(
+                {"error": "Не загружено ни одного файла. Отправьте .jar файлы или .zip архив."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        temp_dir = tempfile.mkdtemp()
+        jar_files = []
+        results = []
+
+        try:
+            # Если есть архив - распаковываем
+            if archive:
+                archive_path = os.path.join(temp_dir, archive.name)
+                with open(archive_path, 'wb+') as f:
+                    for chunk in archive.chunks():
+                        f.write(chunk)
+                
+                with zipfile.ZipFile(archive_path, 'r') as zf:
+                    for name in zf.namelist():
+                        if name.endswith('.jar'):
+                            zf.extract(name, temp_dir)
+                            jar_files.append(os.path.join(temp_dir, name))
+
+            # Если есть отдельные файлы
+            for f in files:
+                if f.name.endswith('.jar'):
+                    file_path = os.path.join(temp_dir, f.name)
+                    with open(file_path, 'wb+') as fh:
+                        for chunk in f.chunks():
+                            fh.write(chunk)
+                    jar_files.append(file_path)
+
+            for jar_path in jar_files:
+                try:
+                    file_name = os.path.basename(jar_path)
+                    mod_name = os.path.splitext(file_name)[0]
+                    
+                    # Пробуем извлечь версию из имени файла
+                    version = '1.0'
+                    import re
+                    version_match = re.search(r'[\d]+\.[\d]+(\.[\d]+)?', file_name)
+                    if version_match:
+                        version = version_match.group()
+
+                    # Создаём запись мода
+                    mod = Mod(
+                        author=request.user,
+                        title=mod_name,
+                        version=version,
+                        status='approved',
+                    )
+                    
+                    # Сохраняем файл
+                    with open(jar_path, 'rb') as jf:
+                        mod.file.save(file_name, ContentFile(jf.read()))
+                    
+                    mod.save()
+
+                    results.append({
+                        'name': file_name,
+                        'title': mod_name,
+                        'status': 'success',
+                    })
+
+                except Exception as e:
+                    results.append({
+                        'name': os.path.basename(jar_path),
+                        'title': os.path.splitext(os.path.basename(jar_path))[0],
+                        'status': 'error',
+                        'error': str(e),
+                    })
+
+        except Exception as e:
+            logger.error(f"Batch upload error: {e}", exc_info=True)
+            return Response({
+                "status": "error",
+                "error": str(e),
+                "items": results,
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+        total = len(jar_files)
+        completed = sum(1 for r in results if r['status'] == 'success')
+        failed = sum(1 for r in results if r['status'] == 'error')
+
+        return Response({
+            "status": "done",
+            "total": total,
+            "completed": completed,
+            "failed": failed,
+            "items": results,
+        })
+
+
+class ModBatchProgressView(APIView):
+    """Получение прогресса массовой загрузки"""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, batch_id):
+        progress = batch_progress_store.get(batch_id)
+        if not progress:
+            return Response(
+                {"error": "Загрузка не найдена"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        return Response(progress)

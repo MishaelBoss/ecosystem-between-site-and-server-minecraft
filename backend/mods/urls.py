@@ -13,4 +13,8 @@ urlpatterns = [
     path('admin/mods/<int:pk>/', ModUpdateView.as_view(), name='admin-mod-update'),
     path('admin/mods/<int:pk>/approve/', ModApproveView.as_view(), name='admin-mod-approve'),
     path('admin/mods/<int:pk>/reject/', ModRejectView.as_view(), name='admin-mod-reject'),
+    
+    # Массовая загрузка модов
+    path('admin/mods/batch-upload/', ModBatchUploadView.as_view(), name='admin-mod-batch-upload'),
+    path('admin/mods/batch-upload/<str:batch_id>/', ModBatchProgressView.as_view(), name='admin-mod-batch-progress'),
 ]

@@ -394,6 +394,21 @@ export const getAdminModList = async (status?: string) => {
     }
 };
 
+export const uploadModsBatch = async (files: FileList) => {
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+    }
+
+    const res = await axios.post('/admin/mods/batch-upload/', formData, {
+        withCredentials: true,
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return res.data;
+};
+
 export const registerModDownload = async (id: number) => {
     try {
         const res = await axios.post(`/mods/${id}/download/`, {}, {
