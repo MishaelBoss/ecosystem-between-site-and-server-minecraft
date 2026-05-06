@@ -8,6 +8,8 @@ from .models import *
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .authentication import CookieJWTAuthentication
 from django.contrib.auth import logout
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
 class RegisterView(APIView):
@@ -120,52 +122,62 @@ class LogoutView(APIView):
         return response
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class MinecraftAuthView(APIView):
-    permission_classes = [AllowAny]
-
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
-        
+        uuid = request.data.get('uuid')
+
         try:
             user = User.objects.get(username__iexact=username)
+            
             if user.check_password(password):
+                if uuid:
+                    user.mc_uuid = uuid
+                    user.save()
                 return Response({"message": "OK", "coins": user.coins}, status=status.HTTP_200_OK)
             else:
                 return Response({"error": "Invalid password"}, status=status.HTTP_401_UNAUTHORIZED)
+                
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-class MinecraftRegisterView(APIView):
-    permission_classes = [AllowAny]
 
+class MinecraftRegisterView(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
-        
+        uuid = request.data.get('uuid')
+
         if User.objects.filter(username__iexact=username).exists():
             return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
-            
+
         user = User.objects.create_user(username=username, password=password)
+        
+        if uuid:
+            user.mc_uuid = uuid
+            user.save()
+
         return Response({"message": "Created", "coins": user.coins}, status=status.HTTP_201_CREATED)
 
-class MinecraftEconomyView(APIView):
-    permission_classes = [AllowAny]
 
+@method_decorator(csrf_exempt, name='dispatch')
+class MinecraftEconomyView(APIView):
     def post(self, request):
-        username = request.data.get('username')
-        action = request.data.get('action') # 'add', 'set', 'get'
+        uuid = request.data.get('uuid')
+        action = request.data.get('action')
         amount = request.data.get('amount', 0)
-        
+
         try:
-            user = User.objects.get(username__iexact=username)
+            user = User.objects.get(mc_uuid=uuid)
+            
             if action == 'add':
                 user.coins += int(amount)
-                user.save()
             elif action == 'set':
                 user.coins = int(amount)
-                user.save()
             
+            user.save()
             return Response({"coins": user.coins}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Player not linked"}, status=status.HTTP_404_NOT_FOUND)
