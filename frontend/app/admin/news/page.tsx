@@ -1,29 +1,26 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, Newspaper, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { getListNews, deleteNews } from '../../lib/api';
 import NewsForm from './_components/NewsForm';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
+import ConfirmModal from '../../components/ConfirmModal';
+import styles from './page.module.css';
+import { INewsItem } from '../../types/news.interface';
 
 export default function NewsAdminPage() {
-    const [news, setNews] = useState<any[]>([]);
+    const [news, setNews] = useState<INewsItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingItem, setEditingItem] = useState<any | null>(null);
+    const [editingItem, setEditingItem] = useState<INewsItem | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<INewsItem | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const { isAdmin } = useAuth();
     const router = useRouter();
 
-    useEffect(() => {
-        if (!isAdmin) {
-            router.push('/');
-            return;
-        }
-        fetchNews();
-    }, [isAdmin]);
-
-    const fetchNews = async () => {
+    const fetchNews = useCallback(async () => {
         setIsLoading(true);
         try {
             const data = await getListNews(0, 100);
@@ -33,20 +30,41 @@ export default function NewsAdminPage() {
         } finally {
             setIsLoading(false);
         }
+    }, []);
+
+    useEffect(() => {
+        if (!isAdmin) {
+            router.push('/');
+            return;
+        }
+
+        const loadNews = async () => {
+            await fetchNews();
+        };
+
+        void loadNews();
+    }, [isAdmin, fetchNews, router]);
+
+    const handleDelete = (item: INewsItem) => {
+        setDeleteTarget(item);
+        setShowDeleteConfirm(true);
     };
 
-    const handleDelete = async (id: number) => {
-        if (confirm('Вы уверены, что хотите удалить эту новость?')) {
-            try {
-                await deleteNews(id);
-                setNews(news.filter(n => n.id !== id));
-            } catch (error) {
-                alert('Ошибка при удалении');
-            }
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+
+        try {
+            await deleteNews(deleteTarget.id);
+            setNews(prev => prev.filter(n => n.id !== deleteTarget.id));
+        } catch (error) {
+            alert('Ошибка при удалении');
+        } finally {
+            setShowDeleteConfirm(false);
+            setDeleteTarget(null);
         }
     };
 
-    const handleEdit = (item: any) => {
+    const handleEdit = (item: INewsItem) => {
         setEditingItem(item);
         setIsFormOpen(true);
     };
@@ -59,59 +77,56 @@ export default function NewsAdminPage() {
     if (!isAdmin) return null;
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
+        <div className={styles.page}>
+            <div className={styles.header}>
                 <div>
-                    <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px', marginBottom: '12px' }}>
+                    <Link href="/" className={styles.breadcrumbLink}>
                         <ChevronLeft size={16} /> На главную
                     </Link>
-                    <h1 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-1px' }}>Управление новостями</h1>
+                    <h1 className={styles.pageTitle}>Управление новостями</h1>
                 </div>
-                <button 
+                <button
+                    type="button"
                     onClick={handleCreate}
-                    style={{ 
-                        display: 'flex', alignItems: 'center', gap: '8px', 
-                        backgroundColor: 'var(--accent)', color: '#fff', border: 'none', 
-                        borderRadius: '10px', padding: '12px 24px', fontWeight: 600, cursor: 'pointer' 
-                    }}
+                    className={styles.addButton}
                 >
                     <Plus size={18} /> Добавить новость
                 </button>
             </div>
 
             {isLoading ? (
-                <div style={{ textAlign: 'center', padding: '60px' }}>Загрузка...</div>
+                <div className={styles.loading}>Загрузка...</div>
             ) : (
-                <div style={{ display: 'grid', gap: '16px' }}>
+                <div className={styles.cardsGrid}>
                     {news.map((item) => (
-                        <div key={item.id} style={{ 
-                            backgroundColor: '#161616', border: '1px solid var(--border)', 
-                            borderRadius: '16px', padding: '20px', display: 'flex', 
-                            alignItems: 'center', justifyContent: 'space-between', gap: '20px' 
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1 }}>
+                        <div key={item.id} className={styles.card}>
+                            <div className={styles.cardInfo}>
                                 {item.image ? (
-                                    <img src={item.image} alt="" style={{ width: '100px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
+                                    <img src={item.image} alt={item.title} className={styles.cardImage} />
                                 ) : (
-                                    <div style={{ width: '100px', height: '60px', borderRadius: '8px', backgroundColor: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <div className={styles.cardImageFallback}>
                                         <Newspaper size={24} color="#444" />
                                     </div>
                                 )}
                                 <div>
-                                    <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>{item.title}</h3>
-                                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{item.category} • {new Date(item.date).toLocaleDateString()}</p>
+                                    <h3 className={styles.cardTitle}>{item.title}</h3>
+                                    <p className={styles.cardMeta}>{item.category} • {new Date(item.date).toLocaleDateString()}</p>
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <button 
+                            <div className={styles.cardActions}>
+                                <button
+                                    type="button"
                                     onClick={() => handleEdit(item)}
-                                    style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                                    className={styles.actionButton}
+                                    aria-label={`Редактировать новость ${item.title}`}
                                 >
                                     <Edit2 size={18} />
                                 </button>
-                                <button 
-                                    onClick={() => handleDelete(item.id)}
-                                    style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: '#ef4444', cursor: 'pointer' }}
+                                <button
+                                    type="button"
+                                    onClick={() => handleDelete(item)}
+                                    className={`${styles.actionButton} ${styles.actionButtonDanger}`}
+                                    aria-label={`Удалить новость ${item.title}`}
                                 >
                                     <Trash2 size={18} />
                                 </button>
@@ -129,6 +144,20 @@ export default function NewsAdminPage() {
                         setIsFormOpen(false);
                         fetchNews();
                     }} 
+                />
+            )}
+
+            {showDeleteConfirm && deleteTarget && (
+                <ConfirmModal
+                    title="Удалить новость"
+                    description={`Вы действительно хотите удалить новость «${deleteTarget.title}»? Это действие нельзя отменить.`}
+                    confirmText="Удалить"
+                    cancelText="Отмена"
+                    onConfirm={confirmDelete}
+                    onClose={() => {
+                        setShowDeleteConfirm(false);
+                        setDeleteTarget(null);
+                    }}
                 />
             )}
         </div>

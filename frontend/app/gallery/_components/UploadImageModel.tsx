@@ -9,9 +9,10 @@ import { useForm, useWatch } from 'react-hook-form';
 
 interface Props {
     onClose: () => void;
+    onSuccess?: () => void;
 }
 
-export default function UploadImageModel({ onClose }: Props) {
+export default function UploadImageModel({ onClose, onSuccess }: Props) {
     const [dragging, setDragging] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -56,6 +57,7 @@ export default function UploadImageModel({ onClose }: Props) {
             await uploadImage(data);
 
             setUploadSuccess(false);
+            onSuccess?.();
             onClose();
             reset({
                 title: '',

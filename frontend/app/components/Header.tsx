@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { LogOut, User, Home, Newspaper, Menu, X, GalleryThumbnails, Map as MapIcon, Coins, ShieldCheck, Download, Package, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -10,8 +10,28 @@ export default function Header() {
     const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
+    const adminButtonRef = useRef<HTMLButtonElement | null>(null);
+    const adminDropdownRef = useRef<HTMLDivElement | null>(null);
     const { user, isAdmin, logout } = useAuth();
     const { data } = useServerStatus();
+
+    useEffect(() => {
+        if (adminDropdownOpen) {
+            const handleClickOutside = (event: MouseEvent) => {
+                if (
+                    adminDropdownRef.current &&
+                    adminButtonRef.current &&
+                    !adminDropdownRef.current.contains(event.target as Node) &&
+                    !adminButtonRef.current.contains(event.target as Node)
+                ) {
+                    setAdminDropdownOpen(false);
+                }
+            };
+
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [adminDropdownOpen]);
 
     return (
         <>
@@ -60,6 +80,7 @@ export default function Header() {
                         {isAdmin && (
                             <div style={{ position: 'relative' }}>
                                 <button
+                                    ref={adminButtonRef}
                                     onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
                                     style={{
                                         display: 'flex', alignItems: 'center', gap: '6px',
@@ -80,7 +101,7 @@ export default function Header() {
                                 </button>
                                 
                                 {adminDropdownOpen && (
-                                    <div style={{
+                                    <div ref={adminDropdownRef} style={{
                                         position: 'absolute',
                                         top: '100%',
                                         left: 0,

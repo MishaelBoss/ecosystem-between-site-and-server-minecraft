@@ -1,0 +1,777 @@
+/* ===== MAIN PAGE LAYOUT ===== */
+.page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.headerLeft {
+    display: flex;
+    flex-direction: column;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 12px;
+    transition: color 0.2s;
+}
+
+.breadcrumb:hover {
+    color: var(--text-primary);
+}
+
+.pageTitle {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin: 0;
+}
+
+.headerRight {
+    display: flex;
+    gap: 10px;
+}
+
+/* ===== LOADING STATE ===== */
+.loading {
+    text-align: center;
+    padding: 60px;
+}
+
+/* ===== MODS GRID ===== */
+.cardsGrid {
+    display: grid;
+    gap: 16px;
+}
+
+/* ===== EMPTY STATE ===== */
+.emptyState {
+    text-align: center;
+    padding: 60px;
+    color: var(--text-secondary);
+}
+
+.emptyStateIcon {
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.emptyStateTitle {
+    margin: 0;
+    margin-bottom: 8px;
+}
+
+.emptyStateSubtitle {
+    font-size: 14px;
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
+/* ===== MOD CARD ===== */
+.modCard {
+    background-color: #161616;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.cardContent {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+.cardIcon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background-color: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cardInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.cardTitle {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+}
+
+.cardMeta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.metaBadge {
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    border: 1px solid;
+}
+
+.metaVersion,
+.metaDownloads {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.cardActions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.actionButton {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.actionButton:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.deleteButton {
+    color: #ef4444;
+}
+
+.deleteButton:hover {
+    border-color: #ef4444;
+}
+
+/* ===== ADD BUTTON ===== */
+.addButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.addButton:hover {
+    opacity: 0.9;
+}
+
+/* ===== BATCH UPLOAD BUTTON ===== */
+.batchUploadButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* ===== BATCH UPLOAD MODAL ===== */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.8);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modalContent {
+    background-color: #111;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 36px;
+    width: 100%;
+    max-width: 600px;
+    animation: fadeInUp 0.25s ease;
+    position: relative;
+}
+
+.modalCloseButton {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: #a0a0a0;
+    cursor: pointer;
+    display: flex;
+    transition: color 0.2s;
+}
+
+.modalCloseButton:hover {
+    color: #fff;
+}
+
+.modalCloseButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.modalTitle {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    margin: 0 0 6px 0;
+    background: linear-gradient(90deg, #fff, #e0195a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.modalDescription {
+    color: #a0a0a0;
+    font-size: 13px;
+    margin-bottom: 28px;
+    margin: 0 0 28px 0;
+}
+
+.dragDropZone {
+    border: 2px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: rgba(255, 255, 255, 0.02);
+    margin-bottom: 20px;
+}
+
+.dragDropZone.dragActive {
+    border-color: #e0195a;
+    background-color: rgba(224, 25, 90, 0.05);
+}
+
+.dragDropZoneIcon {
+    margin-bottom: 12px;
+}
+
+.dragDropZoneTitle {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    margin: 0 0 4px 0;
+}
+
+.dragDropZoneSubtitle {
+    color: #a0a0a0;
+    font-size: 12px;
+    margin: 0;
+}
+
+.hiddenFileInput {
+    display: none;
+}
+
+.filesList {
+    margin-bottom: 20px;
+}
+
+.filesListHeader {
+    color: #a0a0a0;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    margin: 0 0 8px 0;
+}
+
+.filesListContainer {
+    max-height: 200px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.fileItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background-color: #161616;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.fileItemName {
+    flex: 1;
+    font-size: 13px;
+    color: #fff;
+}
+
+.fileItemSize {
+    font-size: 11px;
+    color: #a0a0a0;
+}
+
+.fileRemoveButton {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 2px;
+    transition: color 0.2s;
+    display: flex;
+}
+
+.fileRemoveButton:hover {
+    color: #ff6b6b;
+}
+
+.uploadButton {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.uploadButton:not(:disabled) {
+    background-color: #e0195a;
+    color: #fff;
+}
+
+.uploadButton:disabled {
+    background-color: #2a2a2a;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* ===== PROGRESS PANEL ===== */
+.progressPanel {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    background-color: #111;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    animation: fadeInUp 0.3s ease;
+    overflow: hidden;
+}
+
+.progressPanel.minimized {
+    width: auto;
+}
+
+.progressPanel.expanded {
+    width: 380px;
+    max-width: calc(100vw - 48px);
+}
+
+.progressHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.progressHeader.minimized {
+    border-bottom: none;
+}
+
+.progressHeaderLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.progressHeaderTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.progressHeaderRight {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.progressCount {
+    font-size: 12px;
+    color: #a0a0a0;
+}
+
+.progressCloseButton {
+    background: none;
+    border: none;
+    color: #a0a0a0;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    transition: color 0.2s;
+}
+
+.progressCloseButton:hover {
+    color: #fff;
+}
+
+.progressBar {
+    padding: 0 16px 12px;
+}
+
+.progressBarBackground {
+    height: 4px;
+    background-color: #222;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progressBarFill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.progressBarFill.success {
+    background-color: #22c55e;
+}
+
+.progressBarFill.partial {
+    background-color: #f59e0b;
+}
+
+.progressItems {
+    max-height: 220px;
+    overflow: auto;
+    padding: 0 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.progressItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.progressItem.success {
+    background-color: rgba(34, 197, 94, 0.06);
+}
+
+.progressItem.error {
+    background-color: rgba(239, 68, 68, 0.06);
+}
+
+.progressItemName {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.progressItemName.success {
+    color: #22c55e;
+}
+
+.progressItemName.error {
+    color: #ef4444;
+}
+
+.progressItemStatus {
+    font-weight: 600;
+}
+
+.progressItemStatus.success {
+    color: #22c55e;
+}
+
+.progressItemStatus.error {
+    color: #ef4444;
+}
+
+.progressMinimizedContent {
+    padding: 0 16px 12px;
+    font-size: 12px;
+    color: #a0a0a0;
+}
+
+/* ===== MOD FORM MODAL ===== */
+.formOverlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+.formContent {
+    background-color: #1a1a1a;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow: auto;
+    animation: fadeInUp 0.25s ease;
+}
+
+.formHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.formTitle {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.formCloseButton {
+    background: none;
+    border: none;
+    color: #a0a0a0;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.formCloseButton:hover {
+    color: #fff;
+}
+
+.formGroup {
+    margin-bottom: 20px;
+}
+
+.formLabel {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background-color: #111;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.formTextarea {
+    resize: vertical;
+}
+
+.formFileGroup {
+    margin-bottom: 24px;
+}
+
+.formFilezone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    background-color: #111;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.formFilezone.dragActive {
+    border-color: var(--accent);
+    background-color: rgba(224, 25, 90, 0.05);
+}
+
+.formFilezonesContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.formFileIcon {
+    margin-bottom: 12px;
+}
+
+.formFilename {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    margin: 0 0 4px 0;
+    color: var(--text-primary);
+}
+
+.formFilesize {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.formFileRemoveButton {
+    margin-top: 8px;
+    padding: 4px 12px;
+    background-color: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.formFileRemoveButton:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.formFileDropHint {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    margin: 0 0 4px 0;
+}
+
+.formFileDropSubhint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    margin: 0;
+}
+
+.formActions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.formCancelButton {
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background-color: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.formCancelButton:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
+.formSubmitButton {
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: none;
+    background-color: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.formSubmitButton:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.formSubmitButton:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinAnimation {
+    animation: spin 1s linear infinite;
+}

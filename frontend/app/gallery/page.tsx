@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { X, ZoomIn, Coins, CheckCircle2, Clock, XCircle, ImagePlus, Trophy, Star, Filter } from 'lucide-react';
 import UploadImageModel from './_components/UploadImageModel';
 import { useAuth } from '../context/AuthContext';
@@ -30,20 +30,25 @@ export default function GalleryPage() {
   const [lightbox, setLightbox] = useState<IGalleryItem | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchGallery = async () => {
-      try {
-        const res = await getGalleryList();
-
-        setItems(res.data || res);
-      } catch (err) {
-        console.error('Ошибка загрузки галереи', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchGallery();
+  const fetchGallery = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await getGalleryList();
+      setItems(res.data || res);
+    } catch (err) {
+      console.error('Ошибка загрузки галереи', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    const loadGallery = async () => {
+      await fetchGallery();
+    };
+
+    void loadGallery();
+  }, [fetchGallery]);
 
   const filtered = filter === 'all' ? items : items.filter(i => i.status === filter);
 
@@ -241,7 +246,7 @@ export default function GalleryPage() {
       )}
 
       {uploadOpen && (
-        <UploadImageModel onClose={() => setUploadOpen(false)} />
+        <UploadImageModel onClose={() => setUploadOpen(false)} onSuccess={() => fetchGallery()} />
       )}
     </main>
   );

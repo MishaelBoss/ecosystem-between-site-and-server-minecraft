@@ -7,6 +7,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { IModItem, ModCategory, CATEGORY_CONFIG, STATUS_CONFIG } from '../../types/mod.interface';
 import Portal from '../../components/Portal';
+import ConfirmModal from '../../components/ConfirmModal';
+import styles from './page.module.css';
 
 interface BatchItem {
     name: string;
@@ -20,6 +22,8 @@ export default function ModsAdminPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<IModItem | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<IModItem | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const { isAdmin } = useAuth();
     const router = useRouter();
 
@@ -40,17 +44,30 @@ export default function ModsAdminPage() {
             router.push('/');
             return;
         }
-        fetchMods();
-    }, [isAdmin, fetchMods]);
 
-    const handleDelete = async (id: number) => {
-        if (confirm('Вы уверены, что хотите удалить этот мод?')) {
-            try {
-                await deleteMod(id);
-                setMods(mods.filter(m => m.id !== id));
-            } catch (error) {
-                alert('Ошибка при удалении');
-            }
+        const loadMods = async () => {
+            await fetchMods();
+        };
+
+        void loadMods();
+    }, [isAdmin, fetchMods, router]);
+
+    const handleDelete = (item: IModItem) => {
+        setDeleteTarget(item);
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+
+        try {
+            await deleteMod(deleteTarget.id);
+            setMods(prev => prev.filter(m => m.id !== deleteTarget.id));
+        } catch (error) {
+            alert('Ошибка при удалении');
+        } finally {
+            setShowDeleteConfirm(false);
+            setDeleteTarget(null);
         }
     };
 
@@ -67,23 +84,19 @@ export default function ModsAdminPage() {
     if (!isAdmin) return null;
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-                <div>
-                    <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px', marginBottom: '12px' }}>
+        <div className={styles.page}>
+            <div className={styles.header}>
+                <div className={styles.headerLeft}>
+                    <Link href="/" className={styles.breadcrumb}>
                         <ChevronLeft size={16} /> На главную
                     </Link>
-                    <h1 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-1px' }}>Управление модами</h1>
+                    <h1 className={styles.pageTitle}>Управление модами</h1>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className={styles.headerRight}>
                     <BatchUploadButton onComplete={fetchMods} />
                     <button 
                         onClick={handleCreate}
-                        style={{ 
-                            display: 'flex', alignItems: 'center', gap: '8px', 
-                            backgroundColor: 'var(--accent)', color: '#fff', border: 'none', 
-                            borderRadius: '10px', padding: '12px 24px', fontWeight: 600, cursor: 'pointer' 
-                        }}
+                        className={styles.addButton}
                     >
                         <Plus size={18} /> Добавить мод
                     </button>
@@ -98,7 +111,7 @@ export default function ModsAdminPage() {
                         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-secondary)' }}>
                             <Package size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
                             <p>Моды еще не добавлены</p>
-                            <p style={{ fontSize: '14px', marginTop: '8px' }}>Нажмите "Массовая загрузка" или "Добавить мод"</p>
+                            <p style={{ fontSize: '14px', marginTop: '8px' }}>Нажмите &quot;Массовая загрузка&quot; или &quot;Добавить мод&quot;</p>
                         </div>
                     ) : (
                         mods.map((mod) => (
@@ -149,7 +162,7 @@ export default function ModsAdminPage() {
                                             background: 'none', color: 'var(--text-secondary)', cursor: 'pointer',
                                             display: 'flex', alignItems: 'center', textDecoration: 'none'
                                         }}
-                                        onClick={(e) => {
+                                        onClick={() => {
                                             fetch(`/api/mods/${mod.id}/download/`, { method: 'POST', credentials: 'include' });
                                         }}
                                     >
@@ -163,7 +176,7 @@ export default function ModsAdminPage() {
                                         <Edit2 size={18} />
                                     </button>
                                     <button 
-                                        onClick={() => handleDelete(mod.id)}
+                                        onClick={() => handleDelete(mod)}
                                         title="Удалить"
                                         style={{ padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'none', color: '#ef4444', cursor: 'pointer' }}
                                     >
@@ -186,6 +199,20 @@ export default function ModsAdminPage() {
                     }} 
                 />
             )}
+
+            {showDeleteConfirm && deleteTarget && (
+                <ConfirmModal
+                    title="Удалить мод"
+                    description={`Вы действительно хотите удалить мод «${deleteTarget.title}»? Это действие нельзя отменить.`}
+                    confirmText="Удалить"
+                    cancelText="Отмена"
+                    onConfirm={confirmDelete}
+                    onClose={() => {
+                        setShowDeleteConfirm(false);
+                        setDeleteTarget(null);
+                    }}
+                />
+            )}
         </div>
     );
 }
@@ -199,6 +226,11 @@ function BatchUploadButton({ onComplete }: { onComplete: () => void }) {
         completed: number;
         failed: number;
     } | null>(null);
+
+    const handleUploadStart = (initialResult: { items: BatchItem[]; total: number; completed: number; failed: number }) => {
+        setIsOpen(false);
+        setUploadResult(initialResult);
+    };
 
     const handleUploadComplete = () => {
         setUploadResult(null);
@@ -224,10 +256,11 @@ function BatchUploadButton({ onComplete }: { onComplete: () => void }) {
             {isOpen && (
                 <BatchUploadModal
                     onClose={() => setIsOpen(false)}
+                    onUploadStart={handleUploadStart}
                     onUploadComplete={(result) => {
-                        setIsOpen(false);
                         setUploadResult(result);
                     }}
+                    onFileUploaded={onComplete}
                 />
             )}
             {uploadResult && (
@@ -237,9 +270,11 @@ function BatchUploadButton({ onComplete }: { onComplete: () => void }) {
     );
 }
 
-function BatchUploadModal({ onClose, onUploadComplete }: { 
-    onClose: () => void; 
-    onUploadComplete: (result: { items: BatchItem[]; total: number; completed: number; failed: number }) => void 
+function BatchUploadModal({ onClose, onUploadStart, onUploadComplete, onFileUploaded }: { 
+    onClose: () => void;
+    onUploadStart: (initialResult: { items: BatchItem[]; total: number; completed: number; failed: number }) => void;
+    onUploadComplete: (result: { items: BatchItem[]; total: number; completed: number; failed: number }) => void;
+    onFileUploaded: () => void;
 }) {
     const [files, setFiles] = useState<File[]>([]);
     const [isDragging, setIsDragging] = useState(false);
@@ -266,13 +301,38 @@ function BatchUploadModal({ onClose, onUploadComplete }: {
     const startUpload = async () => {
         if (files.length === 0) return;
         setUploading(true);
+
+        const initialResult = {
+            items: files.map(file => ({ name: file.name, title: file.name, status: 'waiting' as const })),
+            total: files.length,
+            completed: 0,
+            failed: 0,
+        };
+        onUploadStart(initialResult);
+
         const dataTransfer = new DataTransfer();
         files.forEach(f => dataTransfer.items.add(f));
+
         try {
             const result = await uploadModsBatch(dataTransfer.files);
             onUploadComplete(result);
+
+            for (const item of result.items) {
+                if (item.status === 'success') {
+                    onFileUploaded();
+                    await new Promise(resolve => setTimeout(resolve, 80));
+                }
+            }
         } catch (error) {
             console.error('Ошибка загрузки', error);
+            const fallbackResult = {
+                items: files.map(file => ({ name: file.name, title: file.name, status: 'error' as const, error: 'Ошибка загрузки' })),
+                total: files.length,
+                completed: 0,
+                failed: files.length,
+            };
+            onUploadComplete(fallbackResult);
+        } finally {
             setUploading(false);
         }
     };
@@ -296,8 +356,15 @@ function BatchUploadModal({ onClose, onUploadComplete }: {
                     <FileArchive size={40} color={isDragging ? '#e0195a' : '#a0a0a0'} style={{ marginBottom:'12px' }} />
                     <p style={{ color:'#fff', fontSize:'14px', fontWeight:600, marginBottom:'4px' }}>{isDragging ? 'Отпустите файлы' : 'Перетащите .jar файлы сюда'}</p>
                     <p style={{ color:'#a0a0a0', fontSize:'12px' }}>или нажмите для выбора · поддерживаются .jar файлы</p>
-                    <input ref={fileInputRef} type="file" accept=".jar" multiple style={{ display:'none' }}
-                        onChange={e => { if (e.target.files) handleFiles(e.target.files); }} />
+                    <input 
+                        ref={fileInputRef} 
+                        type="file" 
+                        accept=".jar" 
+                        multiple 
+                        aria-label="Выбрать jar файлы для загрузки"
+                        style={{ display:'none' }}
+                        onChange={e => { if (e.target.files) handleFiles(e.target.files); }} 
+                    />
                 </div>
                 {files.length > 0 && (
                     <div style={{ marginBottom:'20px' }}>
@@ -308,7 +375,13 @@ function BatchUploadModal({ onClose, onUploadComplete }: {
                                     <Package size={14} color="#a0a0a0" />
                                     <span style={{ flex:1, fontSize:'13px', color:'#fff' }}>{file.name}</span>
                                     <span style={{ fontSize:'11px', color:'#a0a0a0' }}>{(file.size/1024/1024).toFixed(1)} MB</span>
-                                    <button onClick={() => removeFile(i)} style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:'2px' }}><X size={14} /></button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => removeFile(i)} 
+                                        aria-label={`Удалить файл ${file.name}`}
+                                        style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:'2px' }}>
+                                        <X size={14} />
+                                    </button>
                                 </div>
                             ))}
                         </div>
@@ -344,7 +417,13 @@ function UploadProgressPanel({ result, onClose }: { result: { items: BatchItem[]
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                     {!minimized && <span style={{ fontSize:'12px', color:'#a0a0a0' }}>{completed+failed}/{total}</span>}
-                    <button onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ background:'none', border:'none', color:'#a0a0a0', cursor:'pointer', padding:'2px' }}><X size={16} /></button>
+                    <button 
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onClose(); }} 
+                        aria-label="Закрыть панель загрузки"
+                        style={{ background:'none', border:'none', color:'#a0a0a0', cursor:'pointer', padding:'2px' }}>
+                        <X size={16} />
+                    </button>
                 </div>
             </div>
             {!minimized && (
@@ -418,7 +497,13 @@ function ModForm({ item, onClose, onSuccess }: {
             <div style={{ backgroundColor:'#1a1a1a', border:'1px solid var(--border)', borderRadius:'20px', padding:'32px', width:'100%', maxWidth:'500px', maxHeight:'90vh', overflow:'auto', animation:'fadeInUp 0.25s ease' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
                     <h2 style={{ fontSize:'24px', fontWeight:700 }}>{item ? 'Редактировать мод' : 'Добавить мод'}</h2>
-                    <button onClick={onClose} style={{ background:'none', border:'none', color:'#a0a0a0', cursor:'pointer' }}><X size={20} /></button>
+                    <button 
+                        type="button"
+                        onClick={onClose} 
+                        aria-label="Закрыть форму"
+                        style={{ background:'none', border:'none', color:'#a0a0a0', cursor:'pointer' }}>
+                        <X size={20} />
+                    </button>
                 </div>
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom:'20px' }}>
