@@ -19,7 +19,7 @@ def get_tps_from_plugin():
     return None
 
 def server_status(request):
-    server = JavaServer.lookup("c5.play2go.cloud:20167")
+    server = JavaServer.lookup("c5.play2go.cloud:20641")
     try:
         status = server.status()
         latency = server.ping()
@@ -32,9 +32,8 @@ def server_status(request):
 
         tps = get_tps_from_plugin() or 20.0
         
-        # Пример расчета дней работы
         from datetime import datetime
-        start_date = datetime(2023, 1, 1) # Можно поменять на реальную дату запуска
+        start_date = datetime(2023, 1, 1)
         days_online = (datetime.now() - start_date).days
 
         return JsonResponse({

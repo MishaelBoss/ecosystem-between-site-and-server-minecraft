@@ -93,9 +93,9 @@ export default function Header() {
                                         boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
                                         zIndex: 101,
                                     }}>
-                                        <DropdownNavLink href="/admin/mods" icon={<Package size={14} />}>Упр. Модами</DropdownNavLink>
-                                        <DropdownNavLink href="/admin/news" icon={<Newspaper size={14} />}>Упр. Новостями</DropdownNavLink>
-                                        <DropdownNavLink href="/admin/gallery" icon={<GalleryThumbnails size={14} />}>Упр. Галереей</DropdownNavLink>
+                                        <DropdownNavLink href="/admin/mods" icon={<Package size={14} />} onClick={() => setAdminDropdownOpen(false)}>Упр. Модами</DropdownNavLink>
+                                        <DropdownNavLink href="/admin/news" icon={<Newspaper size={14} />} onClick={() => setAdminDropdownOpen(false)}>Упр. Новостями</DropdownNavLink>
+                                        <DropdownNavLink href="/admin/gallery" icon={<GalleryThumbnails size={14} />} onClick={() => setAdminDropdownOpen(false)}>Упр. Галереей</DropdownNavLink>
                                     </div>
                                 )}
                             </div>
@@ -226,9 +226,9 @@ function NavLink({ href, icon, children }: { href: string; icon: React.ReactNode
     );
 }
 
-function DropdownNavLink({ href, icon, children }: { href: string; icon: React.ReactNode; children: React.ReactNode }) {
+function DropdownNavLink({ href, icon, onClick, children }: { href: string; icon: React.ReactNode; onClick?: () => void; children: React.ReactNode }) {
     return (
-        <Link href={href} style={{
+        <Link href={href} onClick={onClick} style={{
             display: 'flex', alignItems: 'center', gap: '8px',
             padding: '10px 12px',
             borderRadius: '8px',
