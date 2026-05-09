@@ -158,19 +158,8 @@ export default function UploadImageModel({ onClose, onSuccess }: Props) {
                         </>
                     ) : (
                         <>
-                        <div 
-                            style={{ 
-                                width: '52px', 
-                                height: '52px', 
-                                backgroundColor: 'rgba(255,255,255,0.04)', 
-                                borderRadius: '12px', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                margin: '0 auto 12px' 
-                            }}
-                        >
-                            <Upload size={22} color="#a0a0a0" />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px', width: '60px', height: '60px' }}>
+                            <Upload size={28} color="#a0a0a0" />
                         </div>
                         <p style={{ color: '#fff', fontSize: '14px', fontWeight: 600, marginBottom: '4px' }}>Перетащите скриншот сюда</p>
                         <p style={{ color: '#a0a0a0', fontSize: '12px' }}>или нажмите для выбора файла · PNG, JPG до 10 МБ</p>

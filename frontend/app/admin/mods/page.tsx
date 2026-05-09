@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus, Edit2, Trash2, Download, ChevronLeft, Package, Upload, UploadCloud, X, AlertCircle, CheckCircle2, Loader2, FileArchive } from 'lucide-react';
+import { Edit2, Trash2, Download, ChevronLeft, Package, Upload, UploadCloud, X, AlertCircle, CheckCircle2, Loader2, FileArchive } from 'lucide-react';
 import Link from 'next/link';
 import { getAdminModList, deleteMod, uploadModsBatch } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
@@ -76,11 +76,6 @@ export default function ModsAdminPage() {
         setIsFormOpen(true);
     };
 
-    const handleCreate = () => {
-        setEditingItem(null);
-        setIsFormOpen(true);
-    };
-
     if (!isAdmin) return null;
 
     return (
@@ -93,13 +88,7 @@ export default function ModsAdminPage() {
                     <h1 className={styles.pageTitle}>Управление модами</h1>
                 </div>
                 <div className={styles.headerRight}>
-                    <BatchUploadButton onComplete={fetchMods} />
-                    <button 
-                        onClick={handleCreate}
-                        className={styles.addButton}
-                    >
-                        <Plus size={18} /> Добавить мод
-                    </button>
+                    <BatchUploadButton text="Загрузить" onComplete={fetchMods} />
                 </div>
             </div>
 
@@ -111,7 +100,7 @@ export default function ModsAdminPage() {
                         <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-secondary)' }}>
                             <Package size={48} style={{ marginBottom: '16px', opacity: 0.5 }} />
                             <p>Моды еще не добавлены</p>
-                            <p style={{ fontSize: '14px', marginTop: '8px' }}>Нажмите &quot;Массовая загрузка&quot; или &quot;Добавить мод&quot;</p>
+                            <p style={{ fontSize: '14px', marginTop: '8px' }}>Нажмите "Загрузить", чтобы добавить моды</p>
                         </div>
                     ) : (
                         mods.map((mod) => (
@@ -217,8 +206,8 @@ export default function ModsAdminPage() {
     );
 }
 
-// ===== КОМПОНЕНТ МАССОВОЙ ЗАГРУЗКИ =====
-function BatchUploadButton({ onComplete }: { onComplete: () => void }) {
+// ===== КОМПОНЕНТ ЗАГРУЗКИ =====
+function BatchUploadButton({ text, onComplete }: { text?: string; onComplete: () => void }) {
     const [isOpen, setIsOpen] = useState(false);
     const [uploadResult, setUploadResult] = useState<{
         items: BatchItem[];
@@ -251,7 +240,7 @@ function BatchUploadButton({ onComplete }: { onComplete: () => void }) {
                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
             >
-                <UploadCloud size={18} /> Массовая загрузка
+                <UploadCloud size={18} /> {text || 'Массовая загрузка'}
             </button>
             {isOpen && (
                 <BatchUploadModal
@@ -316,7 +305,6 @@ function BatchUploadModal({ onClose, onUploadStart, onUploadComplete, onFileUplo
         try {
             const result = await uploadModsBatch(dataTransfer.files);
             onUploadComplete(result);
-
             for (const item of result.items) {
                 if (item.status === 'success') {
                     onFileUploaded();
@@ -346,22 +334,27 @@ function BatchUploadModal({ onClose, onUploadStart, onUploadComplete, onFileUplo
                     style={{ position:'absolute', top:'16px', right:'16px', background:'none', border:'none', color:'#a0a0a0', cursor: uploading ? 'not-allowed' : 'pointer', display:'flex' }}>
                     <X size={18} />
                 </button>
-                <h2 style={{ fontSize:'22px', fontWeight:800, marginBottom:'6px', background:'linear-gradient(90deg, #fff, #e0195a)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
-                    Массовая загрузка модов
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'16px' }}>
+                    <FileArchive size={48} color="#e0195a" />
+                </div>
+                <h2 style={{ fontSize:'22px', fontWeight:800, marginBottom:'6px', textAlign:'center', background:'linear-gradient(90deg, #fff, #e0195a)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+                    Загрузить моды
                 </h2>
-                <p style={{ color:'#a0a0a0', fontSize:'13px', marginBottom:'28px' }}>Перетащите .jar файлы или выберите через проводник</p>
+                <p style={{ color:'#a0a0a0', fontSize:'13px', marginBottom:'28px', textAlign:'center' }}>Перетащите .jar файлы или выберите через проводник</p>
                 <div onDragOver={e => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
                     style={{ border:`2px dashed ${isDragging ? '#e0195a' : 'rgba(255,255,255,0.12)'}`, borderRadius:'14px', padding:'40px', textAlign:'center', cursor:'pointer', transition:'all 0.2s', backgroundColor: isDragging ? 'rgba(224,25,90,0.05)' : 'rgba(255,255,255,0.02)', marginBottom:'20px' }}>
-                    <FileArchive size={40} color={isDragging ? '#e0195a' : '#a0a0a0'} style={{ marginBottom:'12px' }} />
-                    <p style={{ color:'#fff', fontSize:'14px', fontWeight:600, marginBottom:'4px' }}>{isDragging ? 'Отпустите файлы' : 'Перетащите .jar файлы сюда'}</p>
-                    <p style={{ color:'#a0a0a0', fontSize:'12px' }}>или нажмите для выбора · поддерживаются .jar файлы</p>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'12px' }}>
+                        <Upload size={32} color={isDragging ? '#e0195a' : '#a0a0a0'} />
+                    </div>
+                    <p style={{ color:'#fff', fontSize:'14px', fontWeight:600, marginBottom:'4px' }}>{isDragging ? 'Отпустите файлы' : 'Нажмите или перетащите .jar сюда'}</p>
+                    <p style={{ color:'#a0a0a0', fontSize:'12px' }}>поддерживаются .jar файлы</p>
                     <input 
                         ref={fileInputRef} 
                         type="file" 
                         accept=".jar" 
                         multiple 
-                        aria-label="Выбрать jar файлы для загрузки"
+                        aria-label="Выбрать jar файлы"
                         style={{ display:'none' }}
                         onChange={e => { if (e.target.files) handleFiles(e.target.files); }} 
                     />
@@ -378,7 +371,7 @@ function BatchUploadModal({ onClose, onUploadStart, onUploadComplete, onFileUplo
                                     <button 
                                         type="button"
                                         onClick={() => removeFile(i)} 
-                                        aria-label={`Удалить файл ${file.name}`}
+                                        aria-label={`Удалить ${file.name}`}
                                         style={{ background:'none', border:'none', color:'#ef4444', cursor:'pointer', padding:'2px' }}>
                                         <X size={14} />
                                     </button>
@@ -420,7 +413,7 @@ function UploadProgressPanel({ result, onClose }: { result: { items: BatchItem[]
                     <button 
                         type="button"
                         onClick={(e) => { e.stopPropagation(); onClose(); }} 
-                        aria-label="Закрыть панель загрузки"
+                        aria-label="Закрыть"
                         style={{ background:'none', border:'none', color:'#a0a0a0', cursor:'pointer', padding:'2px' }}>
                         <X size={16} />
                     </button>
@@ -455,7 +448,7 @@ function UploadProgressPanel({ result, onClose }: { result: { items: BatchItem[]
     );
 }
 
-// ===== ФОРМА ДОБАВЛЕНИЯ/РЕДАКТИРОВАНИЯ ОДНОГО МОДА =====
+// ===== ФОРМА РЕДАКТИРОВАНИЯ МОДА (только для существующих) =====
 function ModForm({ item, onClose, onSuccess }: { 
     item: IModItem | null; 
     onClose: () => void; 
@@ -465,30 +458,19 @@ function ModForm({ item, onClose, onSuccess }: {
     const [description, setDescription] = useState(item?.description || '');
     const [version, setVersion] = useState(item?.version || '1.0');
     const [category, setCategory] = useState<ModCategory>(item?.category || 'other');
-    const [file, setFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title) { alert('Название обязательно'); return; }
-        if (!file && !item) { alert('Файл обязателен'); return; }
         setIsSubmitting(true);
         try {
-            const { uploadMod } = await import('../../lib/api');
-            await uploadMod({ title, description, file: file || undefined, version, category });
+            const { updateMod } = await import('../../lib/api');
+            await updateMod(item!.id, { title, description, version, category });
             onSuccess();
         } catch (error) {
-            const axiosError = error as { response?: { data?: { message?: string } } };
-            alert(axiosError?.response?.data?.message || 'Ошибка при загрузке мода');
+            alert('Ошибка при обновлении');
         } finally { setIsSubmitting(false); }
-    };
-
-    const handleDrop = (e: React.DragEvent) => {
-        e.preventDefault(); setIsDragging(false);
-        const droppedFile = e.dataTransfer.files[0];
-        if (droppedFile && (droppedFile.name.endsWith('.jar') || droppedFile.name.endsWith('.zip'))) setFile(droppedFile);
-        else alert('Пожалуйста, перетащите файл .jar или .zip');
     };
 
     return (
@@ -496,53 +478,35 @@ function ModForm({ item, onClose, onSuccess }: {
         <div style={{ position:'fixed', inset:0, backgroundColor:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, backdropFilter:'blur(4px)' }}>
             <div style={{ backgroundColor:'#1a1a1a', border:'1px solid var(--border)', borderRadius:'20px', padding:'32px', width:'100%', maxWidth:'500px', maxHeight:'90vh', overflow:'auto', animation:'fadeInUp 0.25s ease' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'24px' }}>
-                    <h2 style={{ fontSize:'24px', fontWeight:700 }}>{item ? 'Редактировать мод' : 'Добавить мод'}</h2>
-                    <button 
-                        type="button"
-                        onClick={onClose} 
-                        aria-label="Закрыть форму"
-                        style={{ background:'none', border:'none', color:'#a0a0a0', cursor:'pointer' }}>
-                        <X size={20} />
-                    </button>
+                    <h2 style={{ fontSize:'24px', fontWeight:700 }}>Редактировать мод</h2>
+                    <button type="button" onClick={onClose} aria-label="Закрыть" style={{ background:'none', border:'none', color:'#a0a0a0', cursor:'pointer' }}><X size={20} /></button>
                 </div>
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom:'20px' }}>
-                        <label style={{ display:'block', marginBottom:'8px', fontSize:'14px', fontWeight:600 }}>Название мода *</label>
-                        <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Например: OptiFine"
+                        <label style={{ display:'block', marginBottom:'8px', fontSize:'14px', fontWeight:600 }}>Название мода</label>
+                        <input type="text" value={title} onChange={e => setTitle(e.target.value)}
                             style={{ width:'100%', padding:'12px', borderRadius:'10px', border:'1px solid var(--border)', backgroundColor:'#111', color:'var(--text-primary)', fontSize:'14px' }} required />
                     </div>
                     <div style={{ marginBottom:'20px' }}>
                         <label style={{ display:'block', marginBottom:'8px', fontSize:'14px', fontWeight:600 }}>Описание</label>
-                        <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Описание мода..." rows={3}
+                        <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3}
                             style={{ width:'100%', padding:'12px', borderRadius:'10px', border:'1px solid var(--border)', backgroundColor:'#111', color:'var(--text-primary)', fontSize:'14px', resize:'vertical' }} />
                     </div>
                     <div style={{ marginBottom:'20px' }}>
                         <label style={{ display:'block', marginBottom:'8px', fontSize:'14px', fontWeight:600 }}>Версия</label>
-                        <input type="text" value={version} onChange={e => setVersion(e.target.value)} placeholder="1.0"
+                        <input type="text" value={version} onChange={e => setVersion(e.target.value)}
                             style={{ width:'100%', padding:'12px', borderRadius:'10px', border:'1px solid var(--border)', backgroundColor:'#111', color:'var(--text-primary)', fontSize:'14px' }} />
                     </div>
                     <div style={{ marginBottom:'20px' }}>
                         <label style={{ display:'block', marginBottom:'8px', fontSize:'14px', fontWeight:600 }}>Категория</label>
-                        <select value={category} onChange={e => setCategory(e.target.value as ModCategory)} title="Категория мода"
+                        <select value={category} onChange={e => setCategory(e.target.value as ModCategory)} title="Категория"
                             style={{ width:'100%', padding:'12px', borderRadius:'10px', border:'1px solid var(--border)', backgroundColor:'#111', color:'var(--text-primary)', fontSize:'14px' }}>
                             {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (<option key={key} value={key}>{config.label}</option>))}
                         </select>
                     </div>
-                    <div style={{ marginBottom:'24px' }}>
-                        <label style={{ display:'block', marginBottom:'8px', fontSize:'14px', fontWeight:600 }}>Файл мода (.jar, .zip) {!item && '*'}</label>
-                        <div onDrop={handleDrop} onDragOver={e => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)}
-                            onClick={() => document.getElementById('mod-file-input')?.click()}
-                            style={{ border:`2px dashed ${isDragging ? 'var(--accent)' : 'var(--border)'}`, borderRadius:'12px', padding:'32px', textAlign:'center', backgroundColor: isDragging ? 'rgba(224,25,90,0.05)' : '#111', transition:'all 0.2s', cursor:'pointer' }}>
-                            {file ? (<div><Package size={32} color="var(--accent)" style={{ marginBottom:'8px' }} /><p style={{ fontSize:'14px', fontWeight:600, marginBottom:'4px' }}>{file.name}</p><p style={{ fontSize:'12px', color:'var(--text-secondary)' }}>{(file.size/1024/1024).toFixed(2)} MB</p>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); setFile(null); }} style={{ marginTop:'8px', padding:'4px 12px', backgroundColor:'transparent', border:'1px solid #ef4444', color:'#ef4444', borderRadius:'6px', fontSize:'12px', cursor:'pointer' }}>Удалить файл</button></div>
-                            ) : (<div><Download size={32} color="var(--text-secondary)" style={{ marginBottom:'12px' }} /><p style={{ fontSize:'14px', color:'var(--text-secondary)', marginBottom:'4px' }}>Перетащите файл сюда или кликните для выбора</p>
-                                <p style={{ fontSize:'12px', color:'var(--text-secondary)', opacity:0.7 }}>Поддерживаются файлы .jar и .zip</p></div>)}
-                        </div>
-                        <input id="mod-file-input" type="file" accept=".jar,.zip" onChange={e => setFile(e.target.files?.[0] || null)} title="Выбрать файл мода" style={{ display:'none' }} />
-                    </div>
                     <div style={{ display:'flex', gap:'12px', justifyContent:'flex-end' }}>
                         <button type="button" onClick={onClose} style={{ padding:'12px 24px', borderRadius:'10px', border:'1px solid var(--border)', backgroundColor:'transparent', color:'var(--text-secondary)', fontSize:'14px', fontWeight:600, cursor:'pointer' }}>Отмена</button>
-                        <button type="submit" disabled={isSubmitting} style={{ padding:'12px 24px', borderRadius:'10px', border:'none', backgroundColor:'var(--accent)', color:'#fff', fontSize:'14px', fontWeight:600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}>{isSubmitting ? 'Загрузка...' : 'Сохранить'}</button>
+                        <button type="submit" disabled={isSubmitting} style={{ padding:'12px 24px', borderRadius:'10px', border:'none', backgroundColor:'var(--accent)', color:'#fff', fontSize:'14px', fontWeight:600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}>{isSubmitting ? 'Сохранение...' : 'Сохранить'}</button>
                     </div>
                 </form>
             </div>

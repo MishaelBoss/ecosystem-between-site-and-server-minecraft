@@ -95,16 +95,25 @@ export default function AuthModal({ mode, onClose, onSwitch }: Props) {
             />
           )}
 
-          <Field
-            icon={<Mail size={15} />}
-            placeholder="Email"
-            type="email"
-            error={errors.email?.message}
-            {...register('email', {
-              required: 'Введите email',
-              pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Некорректный email' },
-            })}
-          />
+          {mode === 'login' ? (
+            <Field
+              icon={<User size={15} />}
+              placeholder="Имя пользователя или Email"
+              type="text"
+              {...register('login' as keyof IUserRegister, { required: 'Введите имя или email' })}
+            />
+          ) : (
+            <Field
+              icon={<Mail size={15} />}
+              placeholder="Email"
+              type="email"
+              error={errors.email?.message}
+              {...register('email', {
+                required: 'Введите email',
+                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Некорректный email' },
+              })}
+            />
+          )}
 
           <Field
             icon={<Lock size={15} />}

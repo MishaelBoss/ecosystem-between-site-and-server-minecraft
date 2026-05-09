@@ -59,20 +59,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const login = async (data: IUserLogin) => {
         setIsLoading(true);
-        const isSuccess = await loginAPI(data);
-        if (isSuccess) {
+        try {
+            await loginAPI(data);
             await refreshAuth();
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     const register = async (data: IUserRegister) => {
         setIsLoading(true);
-        const isSuccess = await registerAPI(data);
-        if (isSuccess) {
+        try {
+            await registerAPI(data);
             await refreshAuth();
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     useEffect(() => {
