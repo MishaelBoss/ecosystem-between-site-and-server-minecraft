@@ -16,6 +16,7 @@ import threading
 import logging
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.core.files import File
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +62,7 @@ class ModAdminListView(APIView):
 class ModCreateView(APIView):
     """Загрузка нового мода (только администраторы)"""
     permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
         serializer = ModSerializer(data=request.data, context={'request': request})
@@ -237,9 +239,9 @@ class ModBatchUploadView(APIView):
                         status='approved',
                     )
                     
-                    # Сохраняем файл
+                    # Сохраняем файл через File с файловым дескриптором (без загрузки в память)
                     with open(jar_path, 'rb') as jf:
-                        mod.file.save(file_name, ContentFile(jf.read()))
+                        mod.file.save(file_name, File(jf))
                     
                     mod.save()
 

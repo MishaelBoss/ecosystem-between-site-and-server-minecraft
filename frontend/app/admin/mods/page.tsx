@@ -277,11 +277,24 @@ function BatchUploadModal({ onClose, onUploadStart, onUploadComplete, onFileUplo
         };
         onUploadStart(initialResult);
 
+        // Преобразуем массив File[] в FileList через DataTransfer
         const dataTransfer = new DataTransfer();
         files.forEach(f => dataTransfer.items.add(f));
 
         try {
-            const result = await uploadModsBatch(dataTransfer.files);
+            // Передаём колбэк прогресса для отображения по порциям
+            const result = await uploadModsBatch(dataTransfer.files, (completed, total) => {
+                onUploadStart({
+                    items: files.map((file, i) => ({
+                        name: file.name,
+                        title: file.name,
+                        status: i < completed ? 'success' as const : 'waiting' as const,
+                    })),
+                    total,
+                    completed,
+                    failed: 0,
+                });
+            });
             onUploadComplete(result);
             for (const item of result.items) {
                 if (item.status === 'success') {

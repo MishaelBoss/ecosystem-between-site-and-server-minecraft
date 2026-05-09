@@ -402,19 +402,64 @@ export const getAdminModList = async (status?: string) => {
     }
 };
 
-export const uploadModsBatch = async (files: FileList) => {
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-        formData.append('files', files[i]);
+export const uploadModsBatch = async (files: FileList, onProgress?: (completed: number, total: number) => void) => {
+    const CHUNK_SIZE = 10; // Отправляем по 10 файлов за раз
+    const allFiles = Array.from(files);
+    const totalFiles = allFiles.length;
+    const totalResults: { name: string; title: string; status: 'success' | 'error'; error?: string }[] = [];
+    let completedCount = 0;
+
+    // Разбиваем на порции
+    for (let i = 0; i < totalFiles; i += CHUNK_SIZE) {
+        const chunk = allFiles.slice(i, i + CHUNK_SIZE);
+        const formData = new FormData();
+        
+        for (const file of chunk) {
+            formData.append('files', file);
+        }
+
+        try {
+            const res = await axios.post('/admin/mods/batch-upload/', formData, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                timeout: 120000, // 2 минуты таймаут на порцию
+            });
+            
+            const result = res.data;
+            if (result.items) {
+                totalResults.push(...result.items);
+                completedCount += chunk.length;
+            }
+        } catch (error) {
+            // Если порция упала, помечаем все файлы из этой порции как ошибки
+            for (const file of chunk) {
+                totalResults.push({
+                    name: file.name,
+                    title: file.name,
+                    status: 'error',
+                    error: 'Ошибка загрузки порции'
+                });
+            }
+            completedCount += chunk.length;
+        }
+
+        if (onProgress) {
+            onProgress(Math.min(completedCount, totalFiles), totalFiles);
+        }
     }
 
-    const res = await axios.post('/admin/mods/batch-upload/', formData, {
-        withCredentials: true,
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-    });
-    return res.data;
+    const completed = totalResults.filter(r => r.status === 'success').length;
+    const failed = totalResults.filter(r => r.status === 'error').length;
+
+    return {
+        status: 'done',
+        total: totalFiles,
+        completed,
+        failed,
+        items: totalResults,
+    };
 };
 
 export const registerModDownload = async (id: number) => {
