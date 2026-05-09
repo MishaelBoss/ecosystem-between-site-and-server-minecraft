@@ -192,7 +192,6 @@ export default function ModsAdminPage() {
     );
 }
 
-// ===== КОМПОНЕНТ ЗАГРУЗКИ =====
 function BatchUploadButton({ text, onComplete }: { text?: string; onComplete: () => void }) {
     const [isOpen, setIsOpen] = useState(false);
     const [uploadResult, setUploadResult] = useState<{
@@ -277,13 +276,11 @@ function BatchUploadModal({ onClose, onUploadStart, onUploadComplete, onFileUplo
         };
         onUploadStart(initialResult);
 
-        // Преобразуем массив File[] в FileList через DataTransfer
         const dataTransfer = new DataTransfer();
         files.forEach(f => dataTransfer.items.add(f));
 
         try {
-            // Передаём колбэк прогресса для отображения по порциям
-            const result = await uploadModsBatch(dataTransfer.files, (completed, total) => {
+                const result = await uploadModsBatch(dataTransfer.files, (completed, total) => {
                 onUploadStart({
                     items: files.map((file, i) => ({
                         name: file.name,
@@ -384,7 +381,6 @@ function BatchUploadModal({ onClose, onUploadStart, onUploadComplete, onFileUplo
     );
 }
 
-// ===== ПЛАВАЮЩАЯ ПАНЕЛЬ РЕЗУЛЬТАТА =====
 function UploadProgressPanel({ result, onClose }: { result: { items: BatchItem[]; total: number; completed: number; failed: number }; onClose: () => void }) {
     const [minimized, setMinimized] = useState(false);
     const { items, total, completed, failed } = result;

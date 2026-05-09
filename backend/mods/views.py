@@ -17,13 +17,14 @@ import logging
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files import File
+from django.http import FileResponse
 import re
+import io
 
 logger = logging.getLogger(__name__)
 
 
 class ModListView(APIView):
-    """Получение списка всех одобренных модов (для игроков)"""
     permission_classes = [AllowAny]
     authentication_classes = []
 
@@ -46,7 +47,6 @@ class ModListView(APIView):
 
 
 class ModAdminListView(APIView):
-    """Получение списка всех модов (для администраторов)"""
     permission_classes = [IsAdminUser]
 
     def get(self, request):
@@ -61,7 +61,6 @@ class ModAdminListView(APIView):
 
 
 class ModCreateView(APIView):
-    """Загрузка нового мода (только администраторы)"""
     permission_classes = [IsAdminUser]
     parser_classes = [MultiPartParser, FormParser]
 
@@ -77,7 +76,6 @@ class ModCreateView(APIView):
 
 
 class ModDetailView(APIView):
-    """Получение деталей конкретного мода"""
     permission_classes = [AllowAny]
     authentication_classes = []
 
@@ -88,7 +86,6 @@ class ModDetailView(APIView):
 
 
 class ModUpdateView(APIView):
-    """Обновление мода (только администраторы)"""
     permission_classes = [IsAdminUser]
 
     def patch(self, request, pk):
@@ -106,7 +103,6 @@ class ModUpdateView(APIView):
 
 
 class ModApproveView(APIView):
-    """Одобрение мода (только администраторы)"""
     permission_classes = [IsAdminUser]
 
     def post(self, request, pk):
@@ -129,7 +125,6 @@ class ModApproveView(APIView):
 
 
 class ModRejectView(APIView):
-    """Отклонение мода (только администраторы)"""
     permission_classes = [IsAdminUser]
 
     def post(self, request, pk):
@@ -152,7 +147,6 @@ class ModRejectView(APIView):
 
 
 class ModDownloadView(APIView):
-    """Увеличение счетчика скачиваний"""
     permission_classes = [AllowAny]
     authentication_classes = []
 
@@ -169,17 +163,10 @@ class ModDownloadView(APIView):
         })
 
 
-# ===== МАССОВАЯ ЗАГРУЗКА МОДОВ =====
-
-# Хранилище прогресса в памяти (для демонстрации)
-# В продакшене лучше использовать Redis
 batch_progress_store = {}
 
 
 class ModBatchUploadView(APIView):
-    """Массовая загрузка модов (только администраторы)
-    Обрабатывает файлы синхронно и возвращает результат сразу.
-    """
     permission_classes = [IsAdminUser]
     parser_classes = [MultiPartParser, FormParser]
 
@@ -198,7 +185,6 @@ class ModBatchUploadView(APIView):
         results = []
 
         try:
-            # Если есть архив - распаковываем
             if archive:
                 archive_path = os.path.join(temp_dir, archive.name)
                 with open(archive_path, 'wb+') as f:
@@ -211,7 +197,6 @@ class ModBatchUploadView(APIView):
                             zf.extract(name, temp_dir)
                             jar_files.append(os.path.join(temp_dir, name))
 
-            # Если есть отдельные файлы
             for f in files:
                 if f.name.endswith('.jar'):
                     file_path = os.path.join(temp_dir, f.name)
@@ -225,13 +210,11 @@ class ModBatchUploadView(APIView):
                     file_name = os.path.basename(jar_path)
                     mod_name = os.path.splitext(file_name)[0]
                     
-                    # Пробуем извлечь версию из имени файла
                     version = '1.0'
                     version_match = re.search(r'[\d]+\.[\d]+(\.[\d]+)?', file_name)
                     if version_match:
                         version = version_match.group()
 
-                    # Создаём запись мода
                     mod = Mod(
                         author=request.user,
                         title=mod_name,
@@ -239,8 +222,6 @@ class ModBatchUploadView(APIView):
                         status='approved',
                     )
                     
-                    # Сохраняем файл — читаем в память порциями, но сохраняем через ContentFile
-                    # (File с дескриптором может не сработать, т.к. файл удаляется после закрытия)
                     with open(jar_path, 'rb') as jf:
                         file_content = jf.read()
                     mod.file.save(file_name, ContentFile(file_content))
@@ -285,7 +266,6 @@ class ModBatchUploadView(APIView):
 
 
 class ModBatchProgressView(APIView):
-    """Получение прогресса массовой загрузки"""
     permission_classes = [IsAdminUser]
 
     def get(self, request, batch_id):
@@ -296,3 +276,37 @@ class ModBatchProgressView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         return Response(progress)
+
+
+class ModDownloadAllView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def get(self, request):
+        mods = Mod.objects.filter(status='approved').select_related('author')
+        
+        if not mods.exists():
+            return Response(
+                {"error": "Нет одобренных модов для скачивания"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for mod in mods:
+                if mod.file and mod.file.name:
+                    try:
+                        file_path = mod.file.path
+                        arcname = f"{mod.title}-v{mod.version}.jar"
+                        zf.write(file_path, arcname)
+                    except Exception as e:
+                        logger.warning(f"Не удалось добавить {mod.title} в архив: {e}")
+                        continue
+
+        buffer.seek(0)
+        return FileResponse(
+            buffer,
+            as_attachment=True,
+            filename='all-mods.zip',
+            content_type='application/zip'
+        )

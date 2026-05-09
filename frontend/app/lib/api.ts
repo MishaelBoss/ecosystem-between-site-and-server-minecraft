@@ -408,15 +408,12 @@ export const uploadModsBatch = async (files: FileList, onProgress?: (completed: 
     const totalResults: { name: string; title: string; status: 'success' | 'error'; error?: string }[] = [];
     let completedCount = 0;
 
-    // Загружаем каждый файл по отдельности через /admin/mods/create/
-    // Это надёжнее, чем batch-эндпоинт (который может упасть из-за размера/количества файлов)
     for (const file of allFiles) {
         try {
             const formData = new FormData();
             const fileName = file.name;
             const modName = fileName.replace(/\.jar$/i, '');
             
-            // Извлекаем версию из имени файла
             const versionMatch = fileName.match(/[\d]+\.[\d]+(\.[\d]+)?/);
             const version = versionMatch ? versionMatch[0] : '1.0';
 
@@ -430,7 +427,7 @@ export const uploadModsBatch = async (files: FileList, onProgress?: (completed: 
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
-                timeout: 60000, // 1 минута на один файл
+                timeout: 60000,
             });
 
             totalResults.push({

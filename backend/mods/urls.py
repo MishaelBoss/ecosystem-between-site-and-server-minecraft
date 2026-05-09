@@ -6,6 +6,7 @@ urlpatterns = [
     path('mods/', ModListView.as_view(), name='mod-list'),
     path('mods/<int:pk>/', ModDetailView.as_view(), name='mod-detail'),
     path('mods/<int:pk>/download/', ModDownloadView.as_view(), name='mod-download'),
+    path('mods/download-all/', ModDownloadAllView.as_view(), name='mod-download-all'),
     
     # Админские endpoints
     path('admin/mods/', ModAdminListView.as_view(), name='admin-mod-list'),
