@@ -403,50 +403,73 @@ export const getAdminModList = async (status?: string) => {
 };
 
 export const uploadModsBatch = async (files: FileList, onProgress?: (completed: number, total: number) => void) => {
-    const CHUNK_SIZE = 10; // Отправляем по 10 файлов за раз
     const allFiles = Array.from(files);
     const totalFiles = allFiles.length;
     const totalResults: { name: string; title: string; status: 'success' | 'error'; error?: string }[] = [];
     let completedCount = 0;
 
-    // Разбиваем на порции
-    for (let i = 0; i < totalFiles; i += CHUNK_SIZE) {
-        const chunk = allFiles.slice(i, i + CHUNK_SIZE);
-        const formData = new FormData();
-        
-        for (const file of chunk) {
-            formData.append('files', file);
-        }
-
+    // Загружаем каждый файл по отдельности через /admin/mods/create/
+    // Это надёжнее, чем batch-эндпоинт (который может упасть из-за размера/количества файлов)
+    for (const file of allFiles) {
         try {
-            const res = await axios.post('/admin/mods/batch-upload/', formData, {
+            const formData = new FormData();
+            const fileName = file.name;
+            const modName = fileName.replace(/\.jar$/i, '');
+            
+            // Извлекаем версию из имени файла
+            const versionMatch = fileName.match(/[\d]+\.[\d]+(\.[\d]+)?/);
+            const version = versionMatch ? versionMatch[0] : '1.0';
+
+            formData.append('title', modName);
+            formData.append('file', file);
+            formData.append('version', version);
+            formData.append('category', 'other');
+
+            await axios.post('/admin/mods/create/', formData, {
                 withCredentials: true,
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
-                timeout: 120000, // 2 минуты таймаут на порцию
+                timeout: 60000, // 1 минута на один файл
             });
+
+            totalResults.push({
+                name: fileName,
+                title: modName,
+                status: 'success',
+            });
+        } catch (error: unknown) {
+            let errorMsg = 'Неизвестная ошибка';
+            if (axios.isAxiosError(error) && error.response?.data) {
+                const data = error.response.data;
+                if (typeof data === 'string') {
+                    errorMsg = data;
+                } else if (data.file) {
+                    errorMsg = Array.isArray(data.file) ? data.file.join('; ') : String(data.file);
+                } else if (data.title) {
+                    errorMsg = Array.isArray(data.title) ? data.title.join('; ') : String(data.title);
+                } else if (data.detail) {
+                    errorMsg = data.detail;
+                } else if (data.error) {
+                    errorMsg = data.error;
+                } else {
+                    errorMsg = JSON.stringify(data);
+                }
+            } else if (axios.isAxiosError(error) && error.message) {
+                errorMsg = error.message;
+            }
             
-            const result = res.data;
-            if (result.items) {
-                totalResults.push(...result.items);
-                completedCount += chunk.length;
-            }
-        } catch (error) {
-            // Если порция упала, помечаем все файлы из этой порции как ошибки
-            for (const file of chunk) {
-                totalResults.push({
-                    name: file.name,
-                    title: file.name,
-                    status: 'error',
-                    error: 'Ошибка загрузки порции'
-                });
-            }
-            completedCount += chunk.length;
+            totalResults.push({
+                name: file.name,
+                title: file.name.replace(/\.jar$/i, ''),
+                status: 'error',
+                error: errorMsg,
+            });
         }
 
+        completedCount++;
         if (onProgress) {
-            onProgress(Math.min(completedCount, totalFiles), totalFiles);
+            onProgress(completedCount, totalFiles);
         }
     }
 

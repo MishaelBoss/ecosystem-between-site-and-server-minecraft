@@ -17,6 +17,7 @@ import logging
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files import File
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +169,7 @@ class ModDownloadView(APIView):
         })
 
 
-# ===== НОВОЕ: массовая загрузка модов =====
+# ===== МАССОВАЯ ЗАГРУЗКА МОДОВ =====
 
 # Хранилище прогресса в памяти (для демонстрации)
 # В продакшене лучше использовать Redis
@@ -226,7 +227,6 @@ class ModBatchUploadView(APIView):
                     
                     # Пробуем извлечь версию из имени файла
                     version = '1.0'
-                    import re
                     version_match = re.search(r'[\d]+\.[\d]+(\.[\d]+)?', file_name)
                     if version_match:
                         version = version_match.group()
@@ -239,9 +239,11 @@ class ModBatchUploadView(APIView):
                         status='approved',
                     )
                     
-                    # Сохраняем файл через File с файловым дескриптором (без загрузки в память)
+                    # Сохраняем файл — читаем в память порциями, но сохраняем через ContentFile
+                    # (File с дескриптором может не сработать, т.к. файл удаляется после закрытия)
                     with open(jar_path, 'rb') as jf:
-                        mod.file.save(file_name, File(jf))
+                        file_content = jf.read()
+                    mod.file.save(file_name, ContentFile(file_content))
                     
                     mod.save()
 
