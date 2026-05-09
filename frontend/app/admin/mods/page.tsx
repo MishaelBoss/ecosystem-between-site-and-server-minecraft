@@ -1,21 +1,15 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Edit2, Trash2, Download, ChevronLeft, Package, Upload, UploadCloud, X, AlertCircle, CheckCircle2, Loader2, FileArchive } from 'lucide-react';
+import { Edit2, Trash2, Download, ChevronLeft, Package, Upload, UploadCloud, X, FileArchive, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { getAdminModList, deleteMod, uploadModsBatch } from '../../lib/api';
+import { getAdminModList, deleteMod } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import { useModUpload } from '../../context/ModUploadContext';
 import { useRouter } from 'next/navigation';
 import { IModItem, ModCategory, CATEGORY_CONFIG, STATUS_CONFIG } from '../../types/mod.interface';
 import Portal from '../../components/Portal';
 import ConfirmModal from '../../components/ConfirmModal';
 import styles from './page.module.css';
-
-interface BatchItem {
-    name: string;
-    title: string;
-    status: 'success' | 'error' | 'waiting';
-    error?: string;
-}
 
 export default function ModsAdminPage() {
     const [mods, setMods] = useState<IModItem[]>([]);
@@ -24,8 +18,10 @@ export default function ModsAdminPage() {
     const [editingItem, setEditingItem] = useState<IModItem | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<IModItem | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const { result: uploadResult } = useModUpload();
     const { isAdmin } = useAuth();
     const router = useRouter();
+    const isInitialLoad = useRef(true);
 
     const fetchMods = useCallback(async () => {
         setIsLoading(true);
@@ -44,13 +40,17 @@ export default function ModsAdminPage() {
             router.push('/');
             return;
         }
-
-        const loadMods = async () => {
-            await fetchMods();
-        };
-
-        void loadMods();
+        if (isInitialLoad.current) {
+            isInitialLoad.current = false;
+            void fetchMods();
+        }
     }, [isAdmin, fetchMods, router]);
+
+    useEffect(() => {
+        if (uploadResult && uploadResult.completed > 0 && !isInitialLoad.current) {
+            void fetchMods();
+        }
+    }, [uploadResult, fetchMods]);
 
     const handleDelete = (item: IModItem) => {
         setDeleteTarget(item);
@@ -88,7 +88,7 @@ export default function ModsAdminPage() {
                     <h1 className={styles.pageTitle}>Управление модами</h1>
                 </div>
                 <div className={styles.headerRight}>
-                    <BatchUploadButton text="Загрузить" onComplete={fetchMods} />
+                    <BatchUploadButton />
                 </div>
             </div>
 
@@ -100,7 +100,7 @@ export default function ModsAdminPage() {
                         <div className={styles.emptyState}>
                             <Package size={48} className={styles.emptyStateIcon} />
                             <p className={styles.emptyStateTitle}>Моды еще не добавлены</p>
-                            <p className={styles.emptyStateSubtitle}>Нажмите &quot;Загрузить&quot;, чтобы добавить моды</p>
+                            <p className={styles.emptyStateSubtitle}>Нажмите "Загрузить", чтобы добавить моды</p>
                         </div>
                     ) : (
                         mods.map((mod) => (
@@ -178,7 +178,7 @@ export default function ModsAdminPage() {
             {showDeleteConfirm && deleteTarget && (
                 <ConfirmModal
                     title="Удалить мод"
-                    description={`Вы действительно хотите удалить мод «${deleteTarget.title}»? Это действие нельзя отменить.`}
+                    description={`Вы действительно хотите удалить мод \u00AB${deleteTarget.title}\u00BB? Это действие нельзя отменить.`}
                     confirmText="Удалить"
                     cancelText="Отмена"
                     onConfirm={confirmDelete}
@@ -192,59 +192,35 @@ export default function ModsAdminPage() {
     );
 }
 
-function BatchUploadButton({ text, onComplete }: { text?: string; onComplete: () => void }) {
+function BatchUploadButton() {
     const [isOpen, setIsOpen] = useState(false);
-    const [uploadResult, setUploadResult] = useState<{
-        items: BatchItem[];
-        total: number;
-        completed: number;
-        failed: number;
-    } | null>(null);
-
-    const handleUploadStart = (initialResult: { items: BatchItem[]; total: number; completed: number; failed: number }) => {
-        setIsOpen(false);
-        setUploadResult(initialResult);
-    };
-
-    const handleUploadComplete = () => {
-        setUploadResult(null);
-        onComplete();
-    };
+    const { isUploading } = useModUpload();
 
     return (
         <>
             <button
                 onClick={() => setIsOpen(true)}
                 className={styles.batchUploadButton}
+                disabled={isUploading}
             >
-                <UploadCloud size={18} /> {text || 'Массовая загрузка'}
+                {isUploading ? <Loader2 size={18} className={styles.spinAnimation} /> : <UploadCloud size={18} />}
+                {isUploading ? 'Загрузка...' : 'Загрузить'}
             </button>
-            {isOpen && (
+            {isOpen && !isUploading && (
                 <BatchUploadModal
                     onClose={() => setIsOpen(false)}
-                    onUploadStart={handleUploadStart}
-                    onUploadComplete={(result) => {
-                        setUploadResult(result);
-                    }}
-                    onFileUploaded={onComplete}
                 />
-            )}
-            {uploadResult && (
-                <UploadProgressPanel result={uploadResult} onClose={handleUploadComplete} />
             )}
         </>
     );
 }
 
-function BatchUploadModal({ onClose, onUploadStart, onUploadComplete, onFileUploaded }: { 
+function BatchUploadModal({ onClose }: { 
     onClose: () => void;
-    onUploadStart: (initialResult: { items: BatchItem[]; total: number; completed: number; failed: number }) => void;
-    onUploadComplete: (result: { items: BatchItem[]; total: number; completed: number; failed: number }) => void;
-    onFileUploaded: () => void;
 }) {
     const [files, setFiles] = useState<File[]>([]);
     const [isDragging, setIsDragging] = useState(false);
-    const [uploading, setUploading] = useState(false);
+    const { startUpload, isUploading } = useModUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFiles = useCallback((newFiles: FileList) => {
@@ -264,60 +240,17 @@ function BatchUploadModal({ onClose, onUploadStart, onUploadComplete, onFileUplo
         setFiles(prev => prev.filter((_, i) => i !== index));
     };
 
-    const startUpload = async () => {
-        if (files.length === 0) return;
-        setUploading(true);
-
-        const initialResult = {
-            items: files.map(file => ({ name: file.name, title: file.name, status: 'waiting' as const })),
-            total: files.length,
-            completed: 0,
-            failed: 0,
-        };
-        onUploadStart(initialResult);
-
-        const dataTransfer = new DataTransfer();
-        files.forEach(f => dataTransfer.items.add(f));
-
-        try {
-                const result = await uploadModsBatch(dataTransfer.files, (completed, total) => {
-                onUploadStart({
-                    items: files.map((file, i) => ({
-                        name: file.name,
-                        title: file.name,
-                        status: i < completed ? 'success' as const : 'waiting' as const,
-                    })),
-                    total,
-                    completed,
-                    failed: 0,
-                });
-            });
-            onUploadComplete(result);
-            for (const item of result.items) {
-                if (item.status === 'success') {
-                    onFileUploaded();
-                    await new Promise(resolve => setTimeout(resolve, 80));
-                }
-            }
-        } catch (error) {
-            console.error('Ошибка загрузки', error);
-            const fallbackResult = {
-                items: files.map(file => ({ name: file.name, title: file.name, status: 'error' as const, error: 'Ошибка загрузки' })),
-                total: files.length,
-                completed: 0,
-                failed: files.length,
-            };
-            onUploadComplete(fallbackResult);
-        } finally {
-            setUploading(false);
-        }
+    const startUploadAction = async () => {
+        if (files.length === 0 || isUploading) return;
+        onClose();
+        startUpload(files, () => {});
     };
 
     return (
         <Portal>
-        <div onClick={e => { if (e.target === e.currentTarget && !uploading) onClose(); }} className={styles.modalOverlay}>
+        <div onClick={e => { if (e.target === e.currentTarget && !isUploading) onClose(); }} className={styles.modalOverlay}>
             <div className={styles.modalContent}>
-                <button onClick={() => !uploading && onClose()} type="button" aria-label="закрыть" className={styles.modalCloseButton}>
+                <button onClick={() => !isUploading && onClose()} type="button" aria-label="закрыть" className={styles.modalCloseButton}>
                     <X size={18} />
                 </button>
                 <div className={styles.modalHeader}>
@@ -371,67 +304,11 @@ function BatchUploadModal({ onClose, onUploadStart, onUploadComplete, onFileUplo
                         </div>
                     </div>
                 )}
-                <button onClick={startUpload} disabled={files.length === 0 || uploading} className={styles.uploadButton}>
-                    {uploading ? <Loader2 size={18} className={styles.spinAnimation} /> : <Upload size={18} />}
-                    {uploading ? 'Загрузка...' : `Загрузить ${files.length > 0 ? `${files.length} мод(ов)` : ''}`}
+                <button onClick={startUploadAction} disabled={files.length === 0 || isUploading} className={styles.uploadButton}>
+                    {isUploading ? <Loader2 size={18} className={styles.spinAnimation} /> : <Upload size={18} />}
+                    {isUploading ? 'Загрузка...' : `Загрузить ${files.length > 0 ? `${files.length} мод(ов)` : ''}`}
                 </button>
             </div>
-        </div>
-        </Portal>
-    );
-}
-
-function UploadProgressPanel({ result, onClose }: { result: { items: BatchItem[]; total: number; completed: number; failed: number }; onClose: () => void }) {
-    const [minimized, setMinimized] = useState(false);
-    const { items, total, completed, failed } = result;
-    const percent = total > 0 ? ((completed + failed) / total) * 100 : 0;
-
-    return (
-        <Portal>
-        <div className={`${styles.progressPanel} ${minimized ? styles.minimized : styles.expanded}`}>
-            <div onClick={() => setMinimized(!minimized)} className={`${styles.progressHeader} ${minimized ? styles.minimized : ''}`}>
-                <div className={styles.progressHeaderLeft}>
-                    <CheckCircle2 size={18} color="#22c55e" />
-                    <span className={styles.progressHeaderTitle}>Загрузка завершена</span>
-                </div>
-                <div className={styles.progressHeaderRight}>
-                    {!minimized && <span className={styles.progressCount}>{completed+failed}/{total}</span>}
-                    <button 
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); onClose(); }} 
-                        aria-label="Закрыть"
-                        className={styles.progressCloseButton}
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-            </div>
-            {!minimized && (
-                <>
-                    <div className={styles.progressBar}>
-                        <div className={styles.progressBarBackground}>
-                            <div 
-                                className={`${styles.progressBarFill} ${failed > 0 ? styles.partial : styles.success}`}
-                                style={{ width: `${percent}%` }}
-                            />
-                        </div>
-                    </div>
-                    <div className={styles.progressItems}>
-                        {items.map((item, i) => (
-                            <div key={i} className={`${styles.progressItem} ${item.status === 'success' ? styles.success : item.status === 'error' ? styles.error : ''}`}>
-                                {item.status === 'success' ? <CheckCircle2 size={12} color="#22c55e" /> : <AlertCircle size={12} color="#ef4444" />}
-                                <span className={`${styles.progressItemName} ${item.status === 'success' ? styles.success : item.status === 'error' ? styles.error : ''}`}>{item.name}</span>
-                                {item.status === 'success' ? <span className={styles.progressItemStatus}>✓</span> : <span className={styles.progressItemStatus}>✗ {item.error}</span>}
-                            </div>
-                        ))}
-                    </div>
-                </>
-            )}
-            {minimized && (
-                <div className={styles.progressMinimizedContent}>
-                    {completed+failed}/{total} · {failed > 0 ? `${failed} ошибок` : 'все успешно'}
-                </div>
-            )}
         </div>
         </Portal>
     );

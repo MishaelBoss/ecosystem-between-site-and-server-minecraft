@@ -8,6 +8,7 @@ import { Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css"; 
 import AxiosConfig from "./components/AxiosConfig";
 import { ServerStatusProvider } from "./context/ServerStatusContext";
+import { ModUploadProvider } from "./context/ModUploadContext";
 import LayoutContent from "./components/LayoutContent";
 
 const geistSans = Geist({
@@ -39,7 +40,9 @@ export default function RootLayout({
           <AuthProvider>
             <ServerStatusProvider>
               <Theme appearance="dark" hasBackground={false} suppressHydrationWarning>
-                <LayoutContent>{children}</LayoutContent>
+                <ModUploadProvider>
+                  <LayoutContent>{children}</LayoutContent>
+                </ModUploadProvider>
               </Theme>
             </ServerStatusProvider>
           </AuthProvider>

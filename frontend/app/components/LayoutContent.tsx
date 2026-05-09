@@ -3,6 +3,7 @@ import { usePathname } from 'next/navigation';
 import Header from './Header';
 import Footer from './Footer';
 import AxiosConfig from './AxiosConfig';
+import UploadProgressPanelGlobal from './UploadProgressPanel';
 
 export default function LayoutContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -16,6 +17,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
                 {children}
             </div>
             {!isAdmin && <Footer />}
+            <UploadProgressPanelGlobal />
         </>
     );
 }
