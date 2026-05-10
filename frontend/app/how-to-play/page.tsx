@@ -212,12 +212,21 @@ export default function HowToPlayPage() {
                                     height: 'fit-content'
                                 }}
                                 onClick={async () => {
-                                    for (const mod of mods) {
-                                        await handleDownload(mod);
+                                    try {
+                                        const response = await fetch('http://localhost:8000/api/mods/download-all/', {
+                                            credentials: 'include'
+                                        });
+                                        if (!response.ok) throw new Error('Failed to download');
+                                        const blob = await response.blob();
+                                        const url = window.URL.createObjectURL(blob);
                                         const link = document.createElement('a');
-                                        link.href = mod.file_url;
-                                        link.download = mod.title;
+                                        link.href = url;
+                                        link.download = 'all-mods.zip';
                                         link.click();
+                                        window.URL.revokeObjectURL(url);
+                                    } catch (error) {
+                                        console.error('Download failed:', error);
+                                        alert('Ошибка при скачивании архива модов');
                                     }
                                 }}
                             >

@@ -494,3 +494,22 @@ export const registerModDownload = async (id: number) => {
         }
     }
 };
+
+export const downloadAllMods = async () => {
+    try {
+        const response = await axios.get('/mods/download-all/', {
+            responseType: 'blob',
+            withCredentials: true
+        });
+        const blob = response.data;
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'all-mods.zip';
+        link.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Ошибка при скачивании архива модов:', error);
+        throw error;
+    }
+};

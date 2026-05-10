@@ -3,6 +3,7 @@ import Link from 'next/link';
 import ServerStatus from './components/ServerStatus';
 import { useServerStatus } from './context/ServerStatusContext';
 import { Download } from 'lucide-react';
+import { downloadAllMods } from './lib/api';
 
 export default function Home() {
   const { data, isLoading } = useServerStatus();
@@ -63,15 +64,14 @@ export default function Home() {
             <Link href="/news" style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#e0195a', borderRadius: '10px', padding: '12px 24px', fontSize: '15px', fontWeight: 600, color: '#fff', textDecoration: 'none' }}>
               Новости сервера →
             </Link>
-            <a 
-              href="http://localhost:8000/api/mods/download-all/" 
-              download
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', padding: '12px 20px', fontSize: '14px', fontWeight: 500, color: '#a0a0a0', textDecoration: 'none', transition: 'all 0.25s' }}
+            <button
+              onClick={downloadAllMods}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'transparent', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', padding: '12px 20px', fontSize: '14px', fontWeight: 500, color: '#a0a0a0', textDecoration: 'none', transition: 'all 0.25s', cursor: 'pointer' }}
               onMouseEnter={e => { const el = e.currentTarget; el.style.borderColor = 'rgba(224,25,90,0.4)'; el.style.color = '#fff'; }}
               onMouseLeave={e => { const el = e.currentTarget; el.style.borderColor = 'rgba(255,255,255,0.15)'; el.style.color = '#a0a0a0'; }}
             >
               <Download size={16} /> Скачать моды
-            </a>
+            </button>
           </div>
         </div>
       </section>

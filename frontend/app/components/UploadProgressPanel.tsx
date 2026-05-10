@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, CheckCircle2, AlertCircle } from 'lucide-react';
 import Portal from './Portal';
 import { useModUpload } from '../context/ModUploadContext';
@@ -8,6 +8,16 @@ import type { BatchItem } from '../context/ModUploadContext';
 export default function UploadProgressPanelGlobal() {
     const { result, dismissResult, isUploading } = useModUpload();
     const [minimized, setMinimized] = useState(false);
+
+    // Auto-close modal after 10 seconds when upload completes
+    useEffect(() => {
+        if (!isUploading && result) {
+            const timer = setTimeout(() => {
+                dismissResult();
+            }, 10000);
+            return () => clearTimeout(timer);
+        }
+    }, [isUploading, result, dismissResult]);
 
     if (!result && !isUploading) return null;
 
