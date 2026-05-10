@@ -107,6 +107,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    min-width: 60px;
 }
 
 .cardInfo {

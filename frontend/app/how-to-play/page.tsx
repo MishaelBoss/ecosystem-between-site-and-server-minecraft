@@ -278,12 +278,14 @@ export default function HowToPlayPage() {
                                             backgroundColor: '#222',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            justifyContent: 'center'
+                                            justifyContent: 'center',
+                                            flexShrink: 0,
+                                            minWidth: '48px'
                                         }}>
                                             <Package size={24} color="#666" />
                                         </div>
-                                        <div>
-                                            <h4 style={{ fontSize: '16px', fontWeight: 700 }}>{mod.title}</h4>
+                                        <div style={{ minWidth: 0 }}>
+                                            <h4 style={{ fontSize: '16px', fontWeight: 700, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mod.title}</h4>
                                             <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>v{mod.version}</span>
                                         </div>
                                     </div>
